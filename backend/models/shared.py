@@ -1,6 +1,6 @@
 from typing import Optional, List, Any
 from pydantic import BaseModel, Field, field_validator
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 
 
@@ -49,7 +49,7 @@ class FilterParams(BaseModel):
     search: Optional[str] = None
     sort: Optional[SortBy] = None
     
-    @field_validator('tech_stack', 'tags', pre=True)
+    @field_validator('tech_stack', 'tags', mode='before')
     @classmethod
     def split_comma_separated(cls, v):
         if isinstance(v, str):
@@ -58,5 +58,5 @@ class FilterParams(BaseModel):
 
 
 class TimeStampMixin(BaseModel):
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=datetime.now(timezone.utc))
     updated_at: Optional[datetime] = None

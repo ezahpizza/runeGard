@@ -72,27 +72,6 @@ class Project(ProjectBase, TimeStampMixin):
         from_attributes = True
         populate_by_name = True
 
-
-class ProjectPublic(BaseModel):
-    id: str
-    title: str
-    abstract: str
-    tech_stack: List[str]
-    github_link: str
-    demo_link: Optional[str] = None
-    report_url: Optional[str] = None
-    created_by: str
-    contributors: List[str]
-    tags: List[str]
-    status: ProjectStatus
-    upvotes: int
-    featured: bool
-    created_at: datetime
-    
-    class Config:
-        from_attributes = True
-
-
 class ProjectSummary(BaseModel):
     id: str
     title: str
@@ -106,8 +85,7 @@ class ProjectSummary(BaseModel):
     
     class Config:
         from_attributes = True
-
-
+        
 class ProjectUpvote(BaseModel):
     project_id: str
     upvoted: bool

@@ -1,28 +1,27 @@
 import logging
 from typing import Optional, List, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import HTTPException, status
 from db.mongo import mongodb
 from core.utils import convert_objectid_to_str, validate_object_id, build_search_query, paginate_query
+from core.controller import to_public_model, paginate_and_fetch
 from models.request import TeammateRequestCreate, TeammateRequestUpdate, TeammateRequest, TeammateRequestPublic
 
 logger = logging.getLogger(__name__)
 
 
 class TeammateRequestCRUD:
-    def __init__(self):
-        self.collection = mongodb.teammate_requests
 
     async def create_request(self, request_data: TeammateRequestCreate, user_id: str) -> TeammateRequest:
         """Create a new teammate request"""
         try:
             request_dict = request_data.model_dump()
             request_dict["user_id"] = user_id
-            request_dict["created_at"] = datetime.utcnow()
+            request_dict["created_at"] = datetime.now(timezone.utc)
             
-            result = await self.collection.insert_one(request_dict)
+            result = await mongodb.teammate_requests.insert_one(request_dict)
             
-            created_request = await self.collection.find_one({"_id": result.inserted_id})
+            created_request = await mongodb.teammate_requests.find_one({"_id": result.inserted_id})
             return TeammateRequest(**convert_objectid_to_str(created_request))
             
         except Exception as e:
@@ -36,7 +35,7 @@ class TeammateRequestCRUD:
         """Get teammate request by ID"""
         try:
             object_id = validate_object_id(request_id)
-            request = await self.collection.find_one({"_id": object_id})
+            request = await mongodb.teammate_requests.find_one({"_id": object_id})
             return TeammateRequest(**convert_objectid_to_str(request)) if request else None
         except HTTPException:
             raise
@@ -59,7 +58,6 @@ class TeammateRequestCRUD:
         """Get teammate requests with filters and pagination"""
         try:
             query = {}
-            
             if tags:
                 query["tags"] = {"$in": tags}
             if user_id:
@@ -69,19 +67,13 @@ class TeammateRequestCRUD:
             if search:
                 search_query = build_search_query(search, ["looking_for", "description"])
                 query.update(search_query)
-            
             pagination = paginate_query(page, limit)
-            
-            cursor = self.collection.find(query).sort("created_at", -1)
-            total = await self.collection.count_documents(query)
-            
-            requests = await cursor.skip(pagination["skip"]).limit(pagination["limit"]).to_list(length=None)
-            
-            # Convert to TeammateRequestPublic models
-            requests = [TeammateRequestPublic(**convert_objectid_to_str(request)) for request in requests]
-            
+            cursor = mongodb.teammate_requests.find(query).sort("created_at", -1)
+            total = await mongodb.teammate_requests.count_documents(query)
+            requests = await paginate_and_fetch(cursor, pagination)
+            public_requests = to_public_model(TeammateRequestPublic, requests)
             return {
-                "requests": requests,
+                "requests": public_requests,
                 "total": total,
                 "page": pagination["page"],
                 "pages": (total + pagination["limit"] - 1) // pagination["limit"],
@@ -99,18 +91,13 @@ class TeammateRequestCRUD:
         """Get teammate requests created by a specific user"""
         try:
             query = {"user_id": user_id}
-            
             pagination = paginate_query(page, limit)
-            
-            cursor = self.collection.find(query).sort("created_at", -1)
-            total = await self.collection.count_documents(query)
-            
-            requests = await cursor.skip(pagination["skip"]).limit(pagination["limit"]).to_list(length=None)
-            
-            requests = [TeammateRequestPublic(**convert_objectid_to_str(request)) for request in requests]
-            
+            cursor = mongodb.teammate_requests.find(query).sort("created_at", -1)
+            total = await mongodb.teammate_requests.count_documents(query)
+            requests = await paginate_and_fetch(cursor, pagination)
+            public_requests = to_public_model(TeammateRequestPublic, requests)
             return {
-                "requests": requests,
+                "requests": public_requests,
                 "total": total,
                 "page": pagination["page"],
                 "pages": (total + pagination["limit"] - 1) // pagination["limit"],
@@ -130,7 +117,7 @@ class TeammateRequestCRUD:
             object_id = validate_object_id(request_id)
             
             # Check ownership
-            request = await self.collection.find_one({"_id": object_id})
+            request = await mongodb.teammate_requests.find_one({"_id": object_id})
             if not request:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
@@ -149,9 +136,9 @@ class TeammateRequestCRUD:
             if not update_dict:
                 return TeammateRequest(**convert_objectid_to_str(request))
             
-            update_dict["updated_at"] = datetime.utcnow()
+            update_dict["updated_at"] = datetime.now(timezone.utc)
             
-            result = await self.collection.update_one(
+            result = await mongodb.teammate_requests.update_one(
                 {"_id": object_id},
                 {"$set": update_dict}
             )
@@ -162,7 +149,7 @@ class TeammateRequestCRUD:
                     detail="Teammate request not found"
                 )
             
-            updated_request = await self.collection.find_one({"_id": object_id})
+            updated_request = await mongodb.teammate_requests.find_one({"_id": object_id})
             return TeammateRequest(**convert_objectid_to_str(updated_request))
             
         except HTTPException:
@@ -180,7 +167,7 @@ class TeammateRequestCRUD:
             object_id = validate_object_id(request_id)
             
             # Check ownership
-            request = await self.collection.find_one({"_id": object_id})
+            request = await mongodb.teammate_requests.find_one({"_id": object_id})
             if not request:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
@@ -193,7 +180,7 @@ class TeammateRequestCRUD:
                     detail="Only request owner can delete the request"
                 )
             
-            result = await self.collection.delete_one({"_id": object_id})
+            result = await mongodb.teammate_requests.delete_one({"_id": object_id})
             return result.deleted_count > 0
             
         except HTTPException:
@@ -220,15 +207,13 @@ class TeammateRequestCRUD:
             
             pagination = paginate_query(page, limit)
             
-            cursor = self.collection.find(query).sort("created_at", -1)
-            total = await self.collection.count_documents(query)
+            cursor = mongodb.teammate_requests.find(query).sort("created_at", -1)
+            total = await mongodb.teammate_requests.count_documents(query)
             
-            requests = await cursor.skip(pagination["skip"]).limit(pagination["limit"]).to_list(length=None)
-            
-            requests = [TeammateRequestPublic(**convert_objectid_to_str(request)) for request in requests]
-            
+            requests = await paginate_and_fetch(cursor, pagination)
+            public_requests = to_public_model(TeammateRequestPublic, requests)
             return {
-                "requests": requests,
+                "requests": public_requests,
                 "total": total,
                 "page": pagination["page"],
                 "pages": (total + pagination["limit"] - 1) // pagination["limit"],
@@ -247,10 +232,10 @@ class TeammateRequestCRUD:
     async def get_recent_requests(self, limit: int = 10) -> List[TeammateRequestPublic]:
         """Get most recent teammate requests"""
         try:
-            cursor = self.collection.find({}).sort("created_at", -1).limit(limit)
+            cursor = mongodb.teammate_requests.find({}).sort("created_at", -1).limit(limit)
             requests = await cursor.to_list(length=None)
-            
-            return [TeammateRequestPublic(**convert_objectid_to_str(request)) for request in requests]
+            public_requests = to_public_model(TeammateRequestPublic, requests)
+            return public_requests
             
         except Exception as e:
             logger.error(f"Error fetching recent requests: {e}")
@@ -263,11 +248,10 @@ class TeammateRequestCRUD:
         """Get teammate requests matching specific tags"""
         try:
             query = {"tags": {"$in": tags}}
-            
-            cursor = self.collection.find(query).sort("created_at", -1).limit(limit)
+            cursor = mongodb.teammate_requests.find(query).sort("created_at", -1).limit(limit)
             requests = await cursor.to_list(length=None)
-            
-            return [TeammateRequestPublic(**convert_objectid_to_str(request)) for request in requests]
+            public_requests = to_public_model(TeammateRequestPublic, requests)
+            return public_requests
             
         except Exception as e:
             logger.error(f"Error fetching requests by tags: {e}")

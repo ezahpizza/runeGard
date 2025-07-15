@@ -1,18 +1,17 @@
 import logging
-from typing import Optional, List, Dict, Any
-from datetime import datetime
+from typing import Optional, Dict, Any
+from datetime import datetime, timezone
 from pymongo.errors import DuplicateKeyError
 from fastapi import HTTPException, status
 from db.mongo import mongodb
 from core.utils import convert_objectid_to_str, validate_object_id, paginate_query
+from core.controller import map_id_field, paginate_and_fetch
 from models.testimonial import TestimonialCreate, TestimonialUpdate, Testimonial, TestimonialWithUser
 
 logger = logging.getLogger(__name__)
 
 
 class TestimonialCRUD:
-    def __init__(self):
-        self.collection = mongodb.testimonials
 
     async def create_testimonial(self, testimonial_data: TestimonialCreate, from_user: str) -> Testimonial:
         """Create a new testimonial"""
@@ -37,13 +36,12 @@ class TestimonialCRUD:
                 "from_user": from_user,
                 "to_user": testimonial_data.to_user,
                 "content": testimonial_data.content,
-                "created_at": datetime.utcnow()
+                "created_at": datetime.now(timezone.utc)
             }
             
-            result = await self.collection.insert_one(testimonial_doc)
+            result = await mongodb.testimonials.insert_one(testimonial_doc)
             
-            # Retrieve and return created testimonial
-            created_testimonial = await self.collection.find_one({"_id": result.inserted_id})
+            created_testimonial = await mongodb.testimonials.find_one({"_id": result.inserted_id})
             return Testimonial(**convert_objectid_to_str(created_testimonial))
             
         except DuplicateKeyError:
@@ -64,8 +62,8 @@ class TestimonialCRUD:
         """Get testimonial by ID"""
         try:
             object_id = validate_object_id(testimonial_id)
-            testimonial = await self.collection.find_one({"_id": object_id})
-            return Testimonial(**convert_objectid_to_str(testimonial)) if testimonial else None
+            testimonial = await mongodb.testimonials.find_one({"_id": object_id})
+            return Testimonial(**map_id_field(testimonial)) if testimonial else None
         except HTTPException:
             raise
         except Exception as e:
@@ -89,17 +87,15 @@ class TestimonialCRUD:
             query = {"to_user": user_id}
             pagination = paginate_query(page, limit)
             
-            cursor = self.collection.find(query).sort("created_at", -1)
-            total = await self.collection.count_documents(query)
+            cursor = mongodb.testimonials.find(query).sort("created_at", -1)
+            total = await mongodb.testimonials.count_documents(query)
             
-            testimonials = await cursor.skip(pagination["skip"]).limit(pagination["limit"]).to_list(length=None)
+            testimonials = await paginate_and_fetch(cursor, pagination)
             
-            # Convert to TestimonialWithUser objects
             enriched_testimonials = []
             for testimonial in testimonials:
-                testimonial_data = convert_objectid_to_str(testimonial)
+                testimonial_data = map_id_field(testimonial)
                 
-                # Get from_user name
                 from_user = await mongodb.users.find_one({"user_id": testimonial["from_user"]})
                 from_user_name = from_user.get("name", "Unknown User") if from_user else "Unknown User"
                 
@@ -135,7 +131,7 @@ class TestimonialCRUD:
             object_id = validate_object_id(testimonial_id)
             
             # Check if user is the author
-            testimonial = await self.collection.find_one({"_id": object_id})
+            testimonial = await mongodb.testimonials.find_one({"_id": object_id})
             if not testimonial:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
@@ -148,18 +144,16 @@ class TestimonialCRUD:
                     detail="Only testimonial author can update it"
                 )
             
-            # Prepare update data
             update_dict = {}
             if update_data.content is not None:
                 update_dict["content"] = update_data.content
             
             if not update_dict:
-                # No updates provided, return current testimonial
                 return Testimonial(**convert_objectid_to_str(testimonial))
             
-            update_dict["updated_at"] = datetime.utcnow()
+            update_dict["updated_at"] = datetime.now(timezone.utc)
             
-            result = await self.collection.update_one(
+            result = await mongodb.testimonials.update_one(
                 {"_id": object_id},
                 {"$set": update_dict}
             )
@@ -170,8 +164,7 @@ class TestimonialCRUD:
                     detail="Testimonial not found"
                 )
             
-            # Return updated testimonial
-            updated_testimonial = await self.collection.find_one({"_id": object_id})
+            updated_testimonial = await mongodb.testimonials.find_one({"_id": object_id})
             return Testimonial(**convert_objectid_to_str(updated_testimonial))
             
         except HTTPException:
@@ -189,7 +182,7 @@ class TestimonialCRUD:
             object_id = validate_object_id(testimonial_id)
             
             # Check if user is the author
-            testimonial = await self.collection.find_one({"_id": object_id})
+            testimonial = await mongodb.testimonials.find_one({"_id": object_id})
             if not testimonial:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
@@ -202,7 +195,7 @@ class TestimonialCRUD:
                     detail="Only testimonial author can delete it"
                 )
             
-            result = await self.collection.delete_one({"_id": object_id})
+            result = await mongodb.testimonials.delete_one({"_id": object_id})
             return result.deleted_count > 0
             
         except HTTPException:
@@ -217,7 +210,7 @@ class TestimonialCRUD:
     async def check_testimonial_exists(self, from_user: str, to_user: str) -> bool:
         """Check if testimonial exists between two users"""
         try:
-            count = await self.collection.count_documents({
+            count = await mongodb.testimonials.count_documents({
                 "from_user": from_user,
                 "to_user": to_user
             })
@@ -226,7 +219,6 @@ class TestimonialCRUD:
         except Exception as e:
             logger.error(f"Error checking testimonial existence: {e}")
             return False
-
 
 # Global instance
 testimonial_crud = TestimonialCRUD()

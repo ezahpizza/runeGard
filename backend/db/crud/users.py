@@ -1,44 +1,17 @@
 import logging
 from typing import Optional, List, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 from pymongo.errors import DuplicateKeyError
 from fastapi import HTTPException, status
 from db.mongo import mongodb
 from core.utils import convert_objectid_to_str, paginate_query
-from models.user import UserCreate, UserUpdate, UserInit, User, UserPublic
+from core.controller import map_id_field, to_public_model, paginate_and_fetch
+from models.user import UserUpdate, UserInit, User, UserPublic
 
 logger = logging.getLogger(__name__)
 
 
 class UserCRUD:
-    def __init__(self):
-        self.collection = mongodb.users
-
-    async def create_user(self, user_data: UserCreate, user_id: str) -> User:
-        """Create a new user profile"""
-        try:
-            # Convert Pydantic model to dict and add required fields
-            user_dict = user_data.model_dump()
-            user_dict["user_id"] = user_id
-            user_dict["created_at"] = datetime.utcnow()
-            user_dict["updated_at"] = datetime.utcnow()
-            user_dict["active"] = True
-            
-            result = await self.collection.insert_one(user_dict)
-            
-            # Retrieve and return the created user
-            created_user = await self.collection.find_one({"_id": result.inserted_id})
-            return User(**convert_objectid_to_str(created_user))
-            
-        except DuplicateKeyError as e:
-            detail = "User already exists" if "user_id" in str(e) else "Email already registered"
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=detail)
-        except Exception as e:
-            logger.error(f"Error creating user: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to create user"
-            )
 
     async def init_user(self, user_data: UserInit, user_id: str, email: str) -> User:
         """Initialize user profile on first login"""
@@ -46,12 +19,12 @@ class UserCRUD:
             user_dict = user_data.model_dump()
             user_dict["user_id"] = user_id
             user_dict["email"] = email
-            user_dict["created_at"] = datetime.utcnow()
-            user_dict["updated_at"] = datetime.utcnow()
+            user_dict["created_at"] = datetime.now(timezone.utc)
+            user_dict["updated_at"] = datetime.now(timezone.utc)
             user_dict["active"] = True
             
-            result = await self.collection.insert_one(user_dict)
-            created_user = await self.collection.find_one({"_id": result.inserted_id})
+            result = await mongodb.users.insert_one(user_dict)
+            created_user = await mongodb.users.find_one({"_id": result.inserted_id})
             return User(**convert_objectid_to_str(created_user))
             
         except DuplicateKeyError:
@@ -69,11 +42,11 @@ class UserCRUD:
     async def get_user_by_id(self, user_id: str) -> Optional[User]:
         """Get user by Clerk user_id"""
         try:
-            user = await self.collection.find_one({
+            user = await mongodb.users.find_one({
                 "user_id": user_id,
                 "active": {"$ne": False}
             })
-            return User(**convert_objectid_to_str(user)) if user else None
+            return User(**map_id_field(user)) if user else None
         except Exception as e:
             logger.error(f"Error fetching user {user_id}: {e}")
             raise HTTPException(
@@ -84,11 +57,11 @@ class UserCRUD:
     async def get_user_public(self, user_id: str) -> Optional[UserPublic]:
         """Get public user profile"""
         try:
-            user = await self.collection.find_one({
+            user = await mongodb.users.find_one({
                 "user_id": user_id,
                 "active": {"$ne": False}
             })
-            return UserPublic(**convert_objectid_to_str(user)) if user else None
+            return UserPublic(**map_id_field(user)) if user else None
         except Exception as e:
             logger.error(f"Error fetching public user {user_id}: {e}")
             raise HTTPException(
@@ -106,9 +79,9 @@ class UserCRUD:
                 # No updates to apply, return current user
                 return await self.get_user_by_id(user_id)
             
-            update_dict["updated_at"] = datetime.utcnow()
+            update_dict["updated_at"] = datetime.now(timezone.utc)
             
-            result = await self.collection.update_one(
+            result = await mongodb.users.update_one(
                 {"user_id": user_id, "active": {"$ne": False}},
                 {"$set": update_dict}
             )
@@ -131,15 +104,40 @@ class UserCRUD:
             )
 
     async def delete_user(self, user_id: str) -> bool:
-        """Soft delete user"""
+        """Hard delete user and all associated records"""
         try:
-            result = await self.collection.update_one(
-                {"user_id": user_id},
-                {"$set": {"active": False, "deleted_at": datetime.utcnow()}}
+            # Delete user's projects
+            await mongodb.projects.delete_many({"created_by": user_id})
+            
+            # Remove user from contributors in other projects
+            await mongodb.projects.update_many(
+                {"contributors": user_id},
+                {"$pull": {"contributors": user_id}}
             )
-            return result.matched_count > 0
+            
+            # Delete user's testimonials (both given and received)
+            await mongodb.testimonials.delete_many({
+                "$or": [
+                    {"from_user": user_id},
+                    {"to_user": user_id}
+                ]
+            })
+            
+            # Delete user's teammate requests
+            await mongodb.teammate_requests.delete_many({
+                "$or": [
+                    {"user_id": user_id},
+                    {"requested_by": user_id}
+                ]
+            })
+            
+            # Finally, delete the user record
+            result = await mongodb.users.delete_one({"user_id": user_id})
+            
+            return result.deleted_count > 0
+            
         except Exception as e:
-            logger.error(f"Error deleting user {user_id}: {e}")
+            logger.error(f"Error hard deleting user {user_id}: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to delete user"
@@ -176,18 +174,12 @@ class UserCRUD:
             
             # Pagination
             pagination = paginate_query(page, limit)
-            
-            # Execute query
-            cursor = self.collection.find(query)
-            total = await self.collection.count_documents(query)
-            
-            users = await cursor.skip(pagination["skip"]).limit(pagination["limit"]).to_list(length=None)
-            
-            # Convert to UserPublic models
-            users = [UserPublic(**convert_objectid_to_str(user)) for user in users]
-            
+            cursor = mongodb.users.find(query)
+            total = await mongodb.users.count_documents(query)
+            users = await paginate_and_fetch(cursor, pagination)
+            users_public = to_public_model(UserPublic, users)
             return {
-                "users": users,
+                "users": users_public,
                 "total": total,
                 "page": pagination["page"],
                 "pages": (total + pagination["limit"] - 1) // pagination["limit"],
@@ -201,28 +193,10 @@ class UserCRUD:
                 detail="Failed to search users"
             )
 
-    async def get_users_by_ids(self, user_ids: List[str]) -> List[UserPublic]:
-        """Get multiple users by their IDs"""
-        try:
-            cursor = self.collection.find({
-                "user_id": {"$in": user_ids},
-                "active": {"$ne": False}
-            })
-            
-            users = await cursor.to_list(length=None)
-            return [UserPublic(**convert_objectid_to_str(user)) for user in users]
-            
-        except Exception as e:
-            logger.error(f"Error fetching users by IDs: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to fetch users"
-            )
-
     async def user_exists(self, user_id: str) -> bool:
         """Check if user exists and is active"""
         try:
-            count = await self.collection.count_documents({
+            count = await mongodb.users.count_documents({
                 "user_id": user_id,
                 "active": {"$ne": False}
             })

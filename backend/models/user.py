@@ -30,10 +30,6 @@ class UserBase(BaseModel):
         return v.strip()
 
 
-class UserCreate(UserBase):
-    pass
-
-
 class UserUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=100)
     bio: Optional[str] = Field(None, max_length=500)
@@ -95,9 +91,3 @@ class UserPublic(BaseModel):
     class Config:
         from_attributes = True
 
-
-class UserProfile(User):
-    email: EmailStr
-    
-    class Config:
-        from_attributes = True
