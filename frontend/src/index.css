@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* runeGard Design System - Neo-Brutalist Aesthetic
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* runeGard Color Palette */
+    --apricot: 345 100% 63%;        /* #FF5582 */
+    --mid-black: 205 38% 7%;        /* #0B1215 */
+    --night-blue: 223 89% 29%;      /* #0B3289 */
+    --bone-white: 237 81% 84%;      /* #D1D4FD */
+    --mint: 122 100% 84%;           /* #ACFFAE */
+    --lavenda: 242, 100%, 74%;        /* #A7A5FF */
+    --rumba: 23, 100%, 77%;        /* #A7A5FF */
+
+    /* Theme Variables - Default Dark Mode */
+    --background: var(--mid-black);
+    --foreground: var(--bone-white);
+    --card: var(--mid-black);
+    --card-foreground: var(--bone-white);
+    --popover: var(--mid-black);
+    --popover-foreground: var(--bone-white);
+    --primary: var(--apricot);
+    --primary-foreground: var(--bone-white);
+    --secondary: var(--night-blue);
+    --secondary-foreground: var(--bone-white);
+    --muted: var(--night-blue);
+    --muted-foreground: var(--bone-white);
+    --accent: var(--mint);
+    --accent-foreground: var(--mid-black);
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: var(--bone-white);
+    --border: var(--bone-white);
+    --input: var(--bone-white);
+    --ring: var(--apricot);
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .light {
+    /* Light Mode Theme */
+    --background: var(--bone-white);
+    --foreground: var(--mid-black);
+    --card: var(--bone-white);
+    --card-foreground: var(--mid-black);
+    --popover: var(--bone-white);
+    --popover-foreground: var(--mid-black);
+    --primary: var(--apricot);
+    --primary-foreground: var(--bone-white);
+    --secondary: var(--night-blue);
+    --secondary-foreground: var(--bone-white);
+    --muted: var(--lavenda);
+    --muted-foreground: var(--mid-black);
+    --accent: var(--mint);
+    --accent-foreground: var(--mid-black);
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: var(--bone-white);
+    --border: var(--mid-black);
+    --input: var(--mid-black);
+    --ring: var(--apricot);
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /* Force midBlack ring on neobrutalist components regardless of theme */
+  [data-slot="button"], [data-slot="card"] {
+    @apply ring-midBlack !important;
+  }
+  
+  /* Additional specificity to override theme-based ring colors */
+  .light [data-slot="button"], .light [data-slot="card"],
+  .dark [data-slot="button"], .dark [data-slot="card"] {
+    @apply ring-midBlack !important;
+  }
+}
