@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { SignUpButton, useUser } from '@clerk/clerk-react';
+import { Link } from 'react-router-dom';
 
 import {
     Card,
@@ -92,8 +93,10 @@ export const RulesSection = () => {
                             </Button>
                         </SignUpButton>
                     ) : (
-                        <Button variant="default" size="lg" className="font-body font-medium text-midBlack bg-mint">
-                            Explore Projects
+                        <Button asChild variant="default" size="lg" className="font-body font-medium text-midBlack bg-mint">
+                            <Link to="/explore">
+                                Explore Projects
+                            </Link>
                         </Button>
                     )}
                 </div>

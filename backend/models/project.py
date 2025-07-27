@@ -62,7 +62,7 @@ class ProjectUpdate(BaseModel):
 
 
 class Project(ProjectBase, TimeStampMixin):
-    id: Optional[str] = Field(None, alias="_id")
+    id: str = Field(..., description="Project unique identifier")
     created_by: str = Field(..., description="User ID of project creator")
     upvotes: int = Field(default=0, ge=0)
     featured: bool = Field(default=False)
@@ -70,7 +70,6 @@ class Project(ProjectBase, TimeStampMixin):
     
     class Config:
         from_attributes = True
-        populate_by_name = True
 
 class ProjectSummary(BaseModel):
     id: str

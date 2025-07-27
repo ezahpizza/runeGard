@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import {
   Card,
   CardContent,
@@ -66,8 +67,10 @@ export const HeroSection = () => {
                 </p>
               </CardContent>
               <CardFooter className="flex-col md:flex-row md:justify-end md:gap-2">
-                <Button variant="neutral" className="w-[20%] bg-mint text-midBlack">
-                  Explore
+                <Button asChild variant="neutral" className="w-[20%] bg-mint text-midBlack">
+                  <Link to="/explore">
+                    Explore
+                  </Link>
                 </Button>
               </CardFooter>
             </Card>

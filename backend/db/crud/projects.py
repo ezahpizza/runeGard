@@ -1,14 +1,13 @@
-import logging
 from typing import Optional, List, Dict, Any
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 from fastapi import HTTPException, status
 from db.mongo import mongodb
-from core.utils import convert_objectid_to_str, validate_object_id, build_search_query, paginate_query
-from core.controller import map_id_field, paginate_and_fetch
+from core.utils import validate_object_id, build_search_query, utc_now
+from core.controller import to_model, to_model_list, execute_paginated_query
+from core.logging_config import get_logger
 from models.project import ProjectCreate, ProjectUpdate, Project, ProjectSummary
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 class ProjectCRUD:
     
@@ -26,8 +25,8 @@ class ProjectCRUD:
 
             project_dict.update({
                 "created_by": user_id,
-                "created_at": datetime.now(timezone.utc),
-                "updated_at": datetime.now(timezone.utc),
+                "created_at": utc_now(),
+                "updated_at": utc_now(),
                 "upvotes": 0,
                 "upvoted_by": [],
                 "featured": False
@@ -36,7 +35,7 @@ class ProjectCRUD:
                 project_dict["contributors"].append(user_id)
             result = await mongodb.projects.insert_one(project_dict)
             created_project = await mongodb.projects.find_one({"_id": result.inserted_id})
-            return Project(**convert_objectid_to_str(created_project))
+            return to_model(Project, created_project)
         except Exception as e:
             logger.error(f"Error creating project: {e}")
             raise HTTPException(
@@ -51,7 +50,7 @@ class ProjectCRUD:
             project = await mongodb.projects.find_one({"_id": object_id})
             if not project:
                 return None
-            return Project(**convert_objectid_to_str(project))
+            return to_model(Project, project)
         except HTTPException:
             raise
         except Exception as e:
@@ -76,20 +75,23 @@ class ProjectCRUD:
         try:
             query = self._build_query(tech_stack, tags, status, search, featured_only)
             sort_options = self._get_sort_options(sort)
-            pagination = paginate_query(page, limit)
-            cursor = mongodb.projects.find(query).sort(list(sort_options.items()))
-            total = await mongodb.projects.count_documents(query)
-            projects = await paginate_and_fetch(cursor, pagination)
-            project_summaries = []
-            for project in projects:
-                project_data = map_id_field(project)
-                project_summaries.append(ProjectSummary(**project_data))
+            
+            result = await execute_paginated_query(
+                mongodb.projects, 
+                query=query, 
+                sort_options=sort_options, 
+                page=page, 
+                limit=limit
+            )
+            
+            project_summaries = to_model_list(ProjectSummary, result["documents"])
+            
             return {
                 "projects": [p.model_dump() for p in project_summaries],
-                "total": total,
-                "page": pagination["page"],
-                "pages": (total + pagination["limit"] - 1) // pagination["limit"],
-                "limit": pagination["limit"]
+                "total": result["total"],
+                "page": result["page"],
+                "pages": result["pages"],
+                "limit": result["limit"]
             }
         except Exception as e:
             logger.error(f"Error fetching projects: {e}")
@@ -101,7 +103,7 @@ class ProjectCRUD:
     async def get_trending_projects(self, limit: int = 10) -> List[ProjectSummary]:
         """Get trending projects based on upvotes and recency"""
         try:
-            thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
+            thirty_days_ago = utc_now() - timedelta(days=30)
             pipeline = [
                 {"$match": {"created_at": {"$gte": thirty_days_ago}}},
                 {
@@ -124,10 +126,7 @@ class ProjectCRUD:
             ]
             cursor = mongodb.projects.aggregate(pipeline)
             projects = await cursor.to_list(length=None)
-            return [
-                ProjectSummary(**convert_objectid_to_str(project)) 
-                for project in projects
-            ]
+            return to_model_list(ProjectSummary, projects)
         except Exception as e:
             logger.error(f"Error fetching trending projects: {e}")
             raise HTTPException(
@@ -139,17 +138,24 @@ class ProjectCRUD:
         """Get projects created by a specific user"""
         try:
             query = {"created_by": user_id}
-            pagination = paginate_query(page, limit)
-            cursor = mongodb.projects.find(query).sort("created_at", -1)
-            total = await mongodb.projects.count_documents(query)
-            projects = await paginate_and_fetch(cursor, pagination)
-            project_summaries = [ProjectSummary(**map_id_field(project)) for project in projects]
+            sort_options = {"created_at": -1}
+            
+            result = await execute_paginated_query(
+                mongodb.projects, 
+                query=query, 
+                sort_options=sort_options, 
+                page=page, 
+                limit=limit
+            )
+            
+            project_summaries = to_model_list(ProjectSummary, result["documents"])
+            
             return {
                 "projects": [p.model_dump() for p in project_summaries],
-                "total": total,
-                "page": pagination["page"],
-                "pages": (total + pagination["limit"] - 1) // pagination["limit"],
-                "limit": pagination["limit"]
+                "total": result["total"],
+                "page": result["page"],
+                "pages": result["pages"],
+                "limit": result["limit"]
             }
         except Exception as e:
             logger.error(f"Error fetching user projects: {e}")
@@ -177,7 +183,7 @@ class ProjectCRUD:
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="No valid fields to update"
                 )
-            update_dict["updated_at"] = datetime.now(timezone.utc)
+            update_dict["updated_at"] = utc_now()
             result = await mongodb.projects.update_one(
                 {"_id": object_id},
                 {"$set": update_dict}
@@ -188,7 +194,7 @@ class ProjectCRUD:
                     detail="Project not found"
                 )
             updated_project = await mongodb.projects.find_one({"_id": object_id})
-            return Project(**convert_objectid_to_str(updated_project))
+            return to_model(Project, updated_project)
         except HTTPException:
             raise
         except Exception as e:
@@ -240,7 +246,7 @@ class ProjectCRUD:
                     detail="Project not found"
                 )
             updated_project = await mongodb.projects.find_one({"_id": object_id})
-            return Project(**convert_objectid_to_str(updated_project))
+            return to_model(Project, updated_project)
         except HTTPException:
             raise
         except Exception as e:
@@ -271,7 +277,7 @@ class ProjectCRUD:
                 }
             )
             updated_project = await mongodb.projects.find_one({"_id": object_id})
-            return Project(**convert_objectid_to_str(updated_project))
+            return to_model(Project, updated_project)
         except HTTPException:
             raise
         except Exception as e:
@@ -296,7 +302,7 @@ class ProjectCRUD:
                 {"$push": {"contributors": contributor_id}}
             )
             updated_project = await mongodb.projects.find_one({"_id": object_id})
-            return Project(**convert_objectid_to_str(updated_project))
+            return to_model(Project, updated_project)
         except HTTPException:
             raise
         except Exception as e:

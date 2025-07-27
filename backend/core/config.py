@@ -22,10 +22,22 @@ class Settings(BaseSettings):
     )
 
     # Environment
-    ENVIRONMENT: str = Field(..., env="ENVIRONMENT")
-    DEBUG: bool = True
+    ENVIRONMENT: str = Field(default="development", env="ENVIRONMENT")
+    DEBUG: bool = Field(default=True, env="DEBUG")
     
-    LOG_LEVEL: str = "INFO"
+    LOG_LEVEL: str = Field(default="INFO", env="LOG_LEVEL")
+    
+    # Rate Limiting
+    RATE_LIMIT_REQUESTS: int = Field(default=100, env="RATE_LIMIT_REQUESTS")
+    RATE_LIMIT_WINDOW: int = Field(default=60, env="RATE_LIMIT_WINDOW")  # seconds
+    
+    @property
+    def is_development(self) -> bool:
+        return self.ENVIRONMENT.lower() in ["development", "dev", "local"]
+    
+    @property
+    def is_production(self) -> bool:
+        return self.ENVIRONMENT.lower() in ["production", "prod"]
     
     class Config:
         env_file = ".env"

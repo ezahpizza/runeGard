@@ -1,9 +1,6 @@
-import { useRef, useEffect } from 'react';
+import { useRef } from 'react';
 import { motion } from 'framer-motion';
-import { useLocation } from 'react-router-dom';
 import { SignInButton, SignOutButton, useUser } from '@clerk/clerk-react';
-import { PacmanLoader } from "react-spinners";
-
 import { Header } from '@/components/landing/Header';
 import { HeroSection } from '@/components/landing/HeroSection';
 import { WhatsInStore } from '@/components/landing/WhatsInStore';
@@ -11,31 +8,28 @@ import { RulesSection } from '@/components/landing/RulesSection';
 import { FAQSection } from '@/components/landing/FAQSection';
 import { Footer } from '@/components/landing/Footer';
 import DockNav from '@/components/shared/DockNav';
+import Loading from '@/components/ui/Loading';
 import Star8 from "@/components/ui/Star8"
 import Star14 from "@/components/ui/Star14"
 import Star40 from "@/components/ui/Star40"
-import Star19 from '@/components/ui/Star19';
-
+import Star19 from '@/components/ui/Star19'
 
 export const LandingPage = () => {
-
-  const { pathname } = useLocation();
   const { isSignedIn, isLoaded } = useUser();
-
   const signInRef = useRef<HTMLButtonElement>(null);
   const signOutRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
-
+  // Only block on Clerk loading
   if (!isLoaded) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <PacmanLoader color='#D1D4FD'/>
+        <Loading message="Loading RuneGard..." />
       </div>
     );
   }
+
+  // Always show landing page, regardless of user state
+  // If you want to prompt for missing details, do it in the dashboard/profile page, not here
 
   return (
     <motion.div
@@ -56,38 +50,36 @@ export const LandingPage = () => {
           </SignOutButton>
         </div>
 
-        {/* Dock Navigation Bar */}
         <DockNav
           isSignedIn={isSignedIn}
           signInRef={signInRef}
           signOutRef={signOutRef}
         />
-        
+
         <div className="relative">
           <HeroSection />
-          
           <div className="absolute bottom-0 left-1/5 transform -translate-x-1/2 translate-y-1/2 z-30">
             <Star14 color="#ffeb6c" size={160} stroke="black" strokeWidth={2} />
           </div>
         </div>
-        
         <div className="relative">
           <WhatsInStore />
-          
           <div className="absolute bottom-0 left-1/3 transform -translate-x-1/2 translate-y-1/2 z-30">
             <Star40 color="#4f46ff" size={160} stroke="black" strokeWidth={2} />
           </div>
         </div>
-        
         <div className="relative">
           <RulesSection />
-          
           <div className="absolute bottom-0 left-2/3 transform -translate-x-1/2 translate-y-1/2 z-30">
+            <Star8 color="#ACFFAE" size={160} stroke="black" strokeWidth={2} />
+          </div>
+        </div>
+        <div className="relative">
+          <FAQSection />
+          <div className="absolute bottom-0 left-3/4 transform -translate-x-1/2 translate-y-1/2 z-30">
             <Star19 color="#00ff50" size={160} stroke="black" strokeWidth={2} />
           </div>
         </div>
-        
-        <FAQSection />
       </main>
       <Footer />
     </motion.div>

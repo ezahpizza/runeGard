@@ -1,15 +1,15 @@
-import logging
-from typing import Optional
 from fastapi import APIRouter, HTTPException, Depends, Query, status
 from core.auth import get_current_user_id
 from db.crud.testimonials import testimonial_crud
+from core.logging_config import get_logger
+
 from models.testimonial import (
     TestimonialCreate,
     TestimonialUpdate,
     TestimonialPublic
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 router = APIRouter()
 

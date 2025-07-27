@@ -1,9 +1,9 @@
-import logging
 from typing import Optional
 from pymongo import AsyncMongoClient, IndexModel, ASCENDING, DESCENDING, TEXT
 from core.config import settings
+from core.logging_config import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class MongoDB:

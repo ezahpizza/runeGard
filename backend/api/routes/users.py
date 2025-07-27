@@ -1,6 +1,7 @@
 from typing import Optional, List
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from core.auth import get_current_user, get_current_user_id
+from core.middleware import auth_rate_limit, standard_rate_limit, search_rate_limit
 from db.crud.users import user_crud
 from db.crud.projects import project_crud
 from models.user import User, UserInit, UserUpdate, UserPublic
@@ -10,7 +11,9 @@ router = APIRouter()
 
 
 @router.post("/init", response_model=User)
+@auth_rate_limit()
 async def init_user(
+    request: Request,
     user_data: UserInit,
     current_user: dict = Depends(get_current_user)
 ):
@@ -30,14 +33,19 @@ async def init_user(
 
 
 @router.get("/me", response_model=User)
+@standard_rate_limit()
 async def get_current_user_profile_route(
+    request: Request,
     current_user: User = Depends(get_current_user_profile)
 ):
     """Get current user's profile"""
     return current_user
 
+
 @router.delete("/me")
+@auth_rate_limit()
 async def delete_current_user(
+    request: Request,
     current_user_id: str = Depends(get_current_user_id)
 ):
     """Delete current user and all associated data"""
@@ -49,8 +57,11 @@ async def delete_current_user(
         )
     return {"message": "User deleted successfully"}
 
+
 @router.put("/update", response_model=User)
+@standard_rate_limit()
 async def update_user(
+    request: Request,
     update_data: UserUpdate,
     current_user_id: str = Depends(get_current_user_id)
 ):
@@ -59,7 +70,8 @@ async def update_user(
 
 
 @router.get("/{user_id}", response_model=UserPublic)
-async def get_user_public(user_id: str):
+@standard_rate_limit()
+async def get_user_public(request: Request, user_id: str):
     """Get public user profile"""
     user = await user_crud.get_user_public(user_id)
     if not user:
@@ -117,4 +129,3 @@ async def search_users(
         page=page,
         limit=limit
     )
-

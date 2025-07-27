@@ -1,10 +1,10 @@
-import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from bson import ObjectId
 from fastapi import HTTPException, status
+from core.logging_config import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class PyObjectId(ObjectId):
@@ -28,14 +28,25 @@ def utc_now() -> datetime:
 
 
 def convert_objectid_to_str(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Convert ObjectIds to strings and standardize datetime formatting in data."""
     if isinstance(data, dict):
         for key, value in data.items():
             if isinstance(value, ObjectId):
                 data[key] = str(value)
+            elif isinstance(value, datetime):
+                if value.tzinfo is None:
+                    value = value.replace(tzinfo=timezone.utc)
+                data[key] = value
             elif isinstance(value, dict):
                 data[key] = convert_objectid_to_str(value)
             elif isinstance(value, list):
-                data[key] = [convert_objectid_to_str(item) if isinstance(item, dict) else str(item) if isinstance(item, ObjectId) else item for item in value]
+                data[key] = [
+                    convert_objectid_to_str(item) if isinstance(item, dict) 
+                    else str(item) if isinstance(item, ObjectId)
+                    else item.replace(tzinfo=timezone.utc) if isinstance(item, datetime) and item.tzinfo is None
+                    else item
+                    for item in value
+                ]
     return data
 
 
@@ -73,10 +84,8 @@ def build_search_query(
     if not search_term or not fields:
         return {}
     
-    # Create regex pattern for case-insensitive search
     search_pattern = {"$regex": search_term, "$options": "i"}
     
-    # Create $or query for multiple fields
     or_conditions = [
         {field: search_pattern} for field in fields
     ]
@@ -90,13 +99,10 @@ def build_filter_query(filters: Dict[str, Any]) -> Dict[str, Any]:
     for key, value in filters.items():
         if value is not None:
             if isinstance(value, list) and value:
-                # Handle array filters (e.g., tags, tech_stack)
                 query[key] = {"$in": value}
             elif isinstance(value, str) and value:
-                # Handle string filters
                 query[key] = value
             elif isinstance(value, (int, float, bool)):
-                # Handle numeric/boolean filters
                 query[key] = value
     
     return query

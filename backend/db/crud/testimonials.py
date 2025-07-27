@@ -1,14 +1,14 @@
-import logging
 from typing import Optional, Dict, Any
 from datetime import datetime, timezone
 from pymongo.errors import DuplicateKeyError
 from fastapi import HTTPException, status
 from db.mongo import mongodb
-from core.utils import convert_objectid_to_str, validate_object_id, paginate_query
-from core.controller import map_id_field, paginate_and_fetch
+from core.utils import validate_object_id, utc_now
+from core.controller import to_model, execute_paginated_query
+from core.logging_config import get_logger
 from models.testimonial import TestimonialCreate, TestimonialUpdate, Testimonial, TestimonialWithUser
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class TestimonialCRUD:
@@ -36,13 +36,13 @@ class TestimonialCRUD:
                 "from_user": from_user,
                 "to_user": testimonial_data.to_user,
                 "content": testimonial_data.content,
-                "created_at": datetime.now(timezone.utc)
+                "created_at": utc_now()
             }
             
             result = await mongodb.testimonials.insert_one(testimonial_doc)
             
             created_testimonial = await mongodb.testimonials.find_one({"_id": result.inserted_id})
-            return Testimonial(**convert_objectid_to_str(created_testimonial))
+            return to_model(Testimonial, created_testimonial)
             
         except DuplicateKeyError:
             raise HTTPException(
@@ -63,7 +63,7 @@ class TestimonialCRUD:
         try:
             object_id = validate_object_id(testimonial_id)
             testimonial = await mongodb.testimonials.find_one({"_id": object_id})
-            return Testimonial(**map_id_field(testimonial)) if testimonial else None
+            return to_model(Testimonial, testimonial) if testimonial else None
         except HTTPException:
             raise
         except Exception as e:
@@ -85,35 +85,32 @@ class TestimonialCRUD:
                 )
             
             query = {"to_user": user_id}
-            pagination = paginate_query(page, limit)
-            
-            cursor = mongodb.testimonials.find(query).sort("created_at", -1)
-            total = await mongodb.testimonials.count_documents(query)
-            
-            testimonials = await paginate_and_fetch(cursor, pagination)
+            result = await execute_paginated_query(
+                mongodb.testimonials, query, 
+                sort_options={"created_at": -1}, 
+                page=page, limit=limit
+            )
             
             enriched_testimonials = []
-            for testimonial in testimonials:
-                testimonial_data = map_id_field(testimonial)
-                
+            for testimonial in result["documents"]:
                 from_user = await mongodb.users.find_one({"user_id": testimonial["from_user"]})
                 from_user_name = from_user.get("name", "Unknown User") if from_user else "Unknown User"
                 
                 testimonial_with_user = TestimonialWithUser(
-                    id=testimonial_data["id"],
-                    from_user=testimonial_data["from_user"],
+                    id=testimonial["id"],
+                    from_user=testimonial["from_user"],
                     from_user_name=from_user_name,
-                    content=testimonial_data["content"],
-                    created_at=testimonial_data["created_at"]
+                    content=testimonial["content"],
+                    created_at=testimonial["created_at"]
                 )
                 enriched_testimonials.append(testimonial_with_user)
             
             return {
                 "testimonials": enriched_testimonials,
-                "total": total,
-                "page": pagination["page"],
-                "pages": (total + pagination["limit"] - 1) // pagination["limit"],
-                "limit": pagination["limit"]
+                "total": result["total"],
+                "page": result["page"],
+                "pages": result["pages"],
+                "limit": result["limit"]
             }
             
         except HTTPException:
@@ -149,9 +146,9 @@ class TestimonialCRUD:
                 update_dict["content"] = update_data.content
             
             if not update_dict:
-                return Testimonial(**convert_objectid_to_str(testimonial))
+                return to_model(Testimonial, testimonial)
             
-            update_dict["updated_at"] = datetime.now(timezone.utc)
+            update_dict["updated_at"] = utc_now()
             
             result = await mongodb.testimonials.update_one(
                 {"_id": object_id},
@@ -165,7 +162,7 @@ class TestimonialCRUD:
                 )
             
             updated_testimonial = await mongodb.testimonials.find_one({"_id": object_id})
-            return Testimonial(**convert_objectid_to_str(updated_testimonial))
+            return to_model(Testimonial, updated_testimonial)
             
         except HTTPException:
             raise

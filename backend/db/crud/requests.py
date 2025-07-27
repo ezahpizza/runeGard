@@ -1,13 +1,13 @@
-import logging
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timezone
 from fastapi import HTTPException, status
 from db.mongo import mongodb
-from core.utils import convert_objectid_to_str, validate_object_id, build_search_query, paginate_query
-from core.controller import to_public_model, paginate_and_fetch
-from models.request import TeammateRequestCreate, TeammateRequestUpdate, TeammateRequest, TeammateRequestPublic
+from core.utils import validate_object_id, build_search_query, utc_now
+from core.controller import to_model, to_model_list, execute_paginated_query
+from core.logging_config import get_logger
+from models.request import TeammateRequestCreate, TeammateRequestUpdate, TeammateRequest, TeammateRequestPublic, TeammateRequestPublic
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class TeammateRequestCRUD:
@@ -17,12 +17,12 @@ class TeammateRequestCRUD:
         try:
             request_dict = request_data.model_dump()
             request_dict["user_id"] = user_id
-            request_dict["created_at"] = datetime.now(timezone.utc)
+            request_dict["created_at"] = utc_now()
             
             result = await mongodb.teammate_requests.insert_one(request_dict)
             
             created_request = await mongodb.teammate_requests.find_one({"_id": result.inserted_id})
-            return TeammateRequest(**convert_objectid_to_str(created_request))
+            return to_model(TeammateRequest, created_request)
             
         except Exception as e:
             logger.error(f"Error creating teammate request: {e}")
@@ -36,7 +36,7 @@ class TeammateRequestCRUD:
         try:
             object_id = validate_object_id(request_id)
             request = await mongodb.teammate_requests.find_one({"_id": object_id})
-            return TeammateRequest(**convert_objectid_to_str(request)) if request else None
+            return to_model(TeammateRequest, request) if request else None
         except HTTPException:
             raise
         except Exception as e:
@@ -67,17 +67,20 @@ class TeammateRequestCRUD:
             if search:
                 search_query = build_search_query(search, ["looking_for", "description"])
                 query.update(search_query)
-            pagination = paginate_query(page, limit)
-            cursor = mongodb.teammate_requests.find(query).sort("created_at", -1)
-            total = await mongodb.teammate_requests.count_documents(query)
-            requests = await paginate_and_fetch(cursor, pagination)
-            public_requests = to_public_model(TeammateRequestPublic, requests)
+                
+            result = await execute_paginated_query(
+                mongodb.teammate_requests, query, 
+                sort_options={"created_at": -1}, 
+                page=page, limit=limit
+            )
+            public_requests = to_model_list(TeammateRequestPublic, result["documents"])
+            
             return {
                 "requests": public_requests,
-                "total": total,
-                "page": pagination["page"],
-                "pages": (total + pagination["limit"] - 1) // pagination["limit"],
-                "limit": pagination["limit"]
+                "total": result["total"],
+                "page": result["page"],
+                "pages": result["pages"],
+                "limit": result["limit"]
             }
             
         except Exception as e:
@@ -91,17 +94,19 @@ class TeammateRequestCRUD:
         """Get teammate requests created by a specific user"""
         try:
             query = {"user_id": user_id}
-            pagination = paginate_query(page, limit)
-            cursor = mongodb.teammate_requests.find(query).sort("created_at", -1)
-            total = await mongodb.teammate_requests.count_documents(query)
-            requests = await paginate_and_fetch(cursor, pagination)
-            public_requests = to_public_model(TeammateRequestPublic, requests)
+            result = await execute_paginated_query(
+                mongodb.teammate_requests, query, 
+                sort_options={"created_at": -1}, 
+                page=page, limit=limit
+            )
+            public_requests = to_model_list(TeammateRequestPublic, result["documents"])
+            
             return {
                 "requests": public_requests,
-                "total": total,
-                "page": pagination["page"],
-                "pages": (total + pagination["limit"] - 1) // pagination["limit"],
-                "limit": pagination["limit"]
+                "total": result["total"],
+                "page": result["page"],
+                "pages": result["pages"],
+                "limit": result["limit"]
             }
             
         except Exception as e:
@@ -134,9 +139,9 @@ class TeammateRequestCRUD:
             update_dict = {k: v for k, v in update_data.model_dump().items() if v is not None}
             
             if not update_dict:
-                return TeammateRequest(**convert_objectid_to_str(request))
+                return to_model(TeammateRequest, request)
             
-            update_dict["updated_at"] = datetime.now(timezone.utc)
+            update_dict["updated_at"] = utc_now()
             
             result = await mongodb.teammate_requests.update_one(
                 {"_id": object_id},
@@ -150,7 +155,7 @@ class TeammateRequestCRUD:
                 )
             
             updated_request = await mongodb.teammate_requests.find_one({"_id": object_id})
-            return TeammateRequest(**convert_objectid_to_str(updated_request))
+            return to_model(TeammateRequest, updated_request)
             
         except HTTPException:
             raise
@@ -205,19 +210,19 @@ class TeammateRequestCRUD:
             
             query = {"project_id": project_id}
             
-            pagination = paginate_query(page, limit)
+            result = await execute_paginated_query(
+                mongodb.teammate_requests, query, 
+                sort_options={"created_at": -1}, 
+                page=page, limit=limit
+            )
+            public_requests = to_model_list(TeammateRequestPublic, result["documents"])
             
-            cursor = mongodb.teammate_requests.find(query).sort("created_at", -1)
-            total = await mongodb.teammate_requests.count_documents(query)
-            
-            requests = await paginate_and_fetch(cursor, pagination)
-            public_requests = to_public_model(TeammateRequestPublic, requests)
             return {
                 "requests": public_requests,
-                "total": total,
-                "page": pagination["page"],
-                "pages": (total + pagination["limit"] - 1) // pagination["limit"],
-                "limit": pagination["limit"]
+                "total": result["total"],
+                "page": result["page"],
+                "pages": result["pages"],
+                "limit": result["limit"]
             }
             
         except HTTPException:
@@ -234,7 +239,7 @@ class TeammateRequestCRUD:
         try:
             cursor = mongodb.teammate_requests.find({}).sort("created_at", -1).limit(limit)
             requests = await cursor.to_list(length=None)
-            public_requests = to_public_model(TeammateRequestPublic, requests)
+            public_requests = to_model_list(TeammateRequestPublic, requests)
             return public_requests
             
         except Exception as e:
@@ -250,7 +255,7 @@ class TeammateRequestCRUD:
             query = {"tags": {"$in": tags}}
             cursor = mongodb.teammate_requests.find(query).sort("created_at", -1).limit(limit)
             requests = await cursor.to_list(length=None)
-            public_requests = to_public_model(TeammateRequestPublic, requests)
+            public_requests = to_model_list(TeammateRequestPublic, requests)
             return public_requests
             
         except Exception as e:

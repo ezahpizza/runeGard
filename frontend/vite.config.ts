@@ -6,7 +6,8 @@ import path from "path";
 export default defineConfig(({ mode }) => {
   // Load env vars
   const env = loadEnv(mode, process.cwd(), "");
-  const backendUrl = env.VITE_BACKEND_URL || "http://localhost:8000";
+  const backendUrl = env.VITE_API_URL || "http://localhost:8000";
+  
   return {
     server: {
       host: "::",
@@ -20,6 +21,12 @@ export default defineConfig(({ mode }) => {
       alias: {
         "@": path.resolve(__dirname, "./src"),
       },
+    },
+    define: {
+      // Ensure debug logging is disabled in production
+      'import.meta.env.VITE_DEBUG': JSON.stringify(
+        mode === 'development' ? env.VITE_DEBUG || 'false' : 'false'
+      ),
     },
   };
 });

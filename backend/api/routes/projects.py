@@ -1,6 +1,7 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from core.auth import get_current_user_id
+from core.middleware import create_rate_limit, search_rate_limit
 from db.crud.projects import project_crud
 from models.project import (
     ProjectCreate, 
@@ -14,7 +15,9 @@ router = APIRouter()
 
 
 @router.post("/", response_model=Project, status_code=status.HTTP_201_CREATED)
+@create_rate_limit()
 async def create_project(
+    request: Request,
     project: ProjectCreate,
     current_user_id: str = Depends(get_current_user_id)
 ):
@@ -23,7 +26,9 @@ async def create_project(
 
 
 @router.get("/", response_model=dict)
+@search_rate_limit()
 async def get_projects(
+    request: Request,
     tech_stack: Optional[List[str]] = Query(None),
     tags: Optional[List[str]] = Query(None),
     status: Optional[str] = Query(None),

@@ -1,14 +1,14 @@
-import logging
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timezone
 from pymongo.errors import DuplicateKeyError
 from fastapi import HTTPException, status
 from db.mongo import mongodb
-from core.utils import convert_objectid_to_str, paginate_query
-from core.controller import map_id_field, to_public_model, paginate_and_fetch
+from core.utils import utc_now
+from core.controller import to_model, to_model_list, execute_paginated_query
+from core.logging_config import get_logger
 from models.user import UserUpdate, UserInit, User, UserPublic
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class UserCRUD:
@@ -19,14 +19,23 @@ class UserCRUD:
             user_dict = user_data.model_dump()
             user_dict["user_id"] = user_id
             user_dict["email"] = email
-            user_dict["created_at"] = datetime.now(timezone.utc)
-            user_dict["updated_at"] = datetime.now(timezone.utc)
+            user_dict["created_at"] = utc_now()
+            user_dict["updated_at"] = utc_now()
             user_dict["active"] = True
-            
             result = await mongodb.users.insert_one(user_dict)
             created_user = await mongodb.users.find_one({"_id": result.inserted_id})
-            return User(**convert_objectid_to_str(created_user))
-            
+            # Ensure created_at and updated_at are valid datetimes and format as ISO 8601 Z
+            for field in ("created_at", "updated_at"):
+                if field in created_user:
+                    dt = created_user[field]
+                    if not isinstance(dt, datetime):
+                        try:
+                            dt = datetime.fromisoformat(dt)
+                        except Exception:
+                            dt = utc_now()
+                    # Format as strict ISO 8601 with Z
+                    created_user[field] = dt.astimezone(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+            return to_model(User, created_user)
         except DuplicateKeyError:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
@@ -46,7 +55,18 @@ class UserCRUD:
                 "user_id": user_id,
                 "active": {"$ne": False}
             })
-            return User(**map_id_field(user)) if user else None
+            if user:
+                for field in ("created_at", "updated_at"):
+                    if field in user:
+                        dt = user[field]
+                        if not isinstance(dt, datetime):
+                            try:
+                                dt = datetime.fromisoformat(dt)
+                            except Exception:
+                                dt = utc_now()
+                        user[field] = dt.astimezone(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+                return to_model(User, user)
+            return None
         except Exception as e:
             logger.error(f"Error fetching user {user_id}: {e}")
             raise HTTPException(
@@ -61,7 +81,18 @@ class UserCRUD:
                 "user_id": user_id,
                 "active": {"$ne": False}
             })
-            return UserPublic(**map_id_field(user)) if user else None
+            if user:
+                for field in ("created_at", "updated_at"):
+                    if field in user:
+                        dt = user[field]
+                        if not isinstance(dt, datetime):
+                            try:
+                                dt = datetime.fromisoformat(dt)
+                            except Exception:
+                                dt = utc_now()
+                        user[field] = dt.astimezone(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+                return to_model(UserPublic, user)
+            return None
         except Exception as e:
             logger.error(f"Error fetching public user {user_id}: {e}")
             raise HTTPException(
@@ -79,7 +110,7 @@ class UserCRUD:
                 # No updates to apply, return current user
                 return await self.get_user_by_id(user_id)
             
-            update_dict["updated_at"] = datetime.now(timezone.utc)
+            update_dict["updated_at"] = utc_now()
             
             result = await mongodb.users.update_one(
                 {"user_id": user_id, "active": {"$ne": False}},
@@ -172,18 +203,16 @@ class UserCRUD:
             if grad_year:
                 query["grad_year"] = grad_year
             
-            # Pagination
-            pagination = paginate_query(page, limit)
-            cursor = mongodb.users.find(query)
-            total = await mongodb.users.count_documents(query)
-            users = await paginate_and_fetch(cursor, pagination)
-            users_public = to_public_model(UserPublic, users)
+            # Use standardized paginated query
+            result = await execute_paginated_query(mongodb.users, query, page=page, limit=limit)
+            users_public = to_model_list(UserPublic, result["documents"])
+            
             return {
                 "users": users_public,
-                "total": total,
-                "page": pagination["page"],
-                "pages": (total + pagination["limit"] - 1) // pagination["limit"],
-                "limit": pagination["limit"]
+                "total": result["total"],
+                "page": result["page"],
+                "pages": result["pages"],
+                "limit": result["limit"]
             }
             
         except Exception as e:

@@ -1,21 +1,16 @@
-import logging
 from contextlib import asynccontextmanager
 
 from typing import Dict
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from core.config import settings
+from core.logging_config import get_logger
+from core.middleware import setup_rate_limiting, limiter
 from db.mongo import mongodb
 from api.routes import projects, requests, testimonials, users
 
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @asynccontextmanager
@@ -58,6 +53,9 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# Setup rate limiting
+setup_rate_limiting(app)
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -76,7 +74,8 @@ app.include_router(users.router, prefix="/users", tags=["User management"])
 
 
 @app.get("/", response_model=Dict[str, str])
-async def root():
+@limiter.limit(f"{settings.RATE_LIMIT_REQUESTS}/{settings.RATE_LIMIT_WINDOW}seconds")
+async def root(request: Request):
     """Root endpoint."""
     return {
         "message": "runeGard API",
@@ -86,7 +85,8 @@ async def root():
 
 
 @app.get("/health")
-async def health_check():
+@limiter.limit("30/60seconds")  
+async def health_check(request: Request):
     """Health check endpoint."""
     try:
         database_connected = False

@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import AdaptiveLogo from "../ui/AdaptiveLogo"
 
 
 export const Footer = () => {
@@ -51,9 +51,9 @@ export const Footer = () => {
                   variant="neutral"
                   className="text-midBlack bg-apricot border-boneWhite hover:bg-boneWhite hover:text-nightBlue justify-center md:justify-start w-40"
                 >
-                  <a href={link.href}>
+                  <Link to={link.href}>
                     {link.name}
-                  </a>
+                  </Link>
                 </Button>
               </motion.div>
             ))}

@@ -1,4 +1,6 @@
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
+
 import {
   Accordion,
   AccordionContent,
@@ -69,7 +71,9 @@ export const FAQSection = () => {
             size="lg"
             className="font-body font-medium text-midBlack bg-rumba"
           >
-            Contact Support
+            <Link to="/contact">
+                  Contact Support
+            </Link>
           </Button>
         </motion.div>
       </div>

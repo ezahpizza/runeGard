@@ -1,15 +1,15 @@
-import logging
 from typing import Optional, List
 from fastapi import APIRouter, HTTPException, Depends, Query, status
 from core.auth import get_current_user_id
 from db.crud.requests import teammate_request_crud
+from core.logging_config import get_logger
 from models.request import (
     TeammateRequestCreate,
     TeammateRequestUpdate,
     TeammateRequestPublic,
 )
+logger = get_logger(__name__)
 
-logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
