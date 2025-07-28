@@ -14,7 +14,7 @@ if (!PUBLISHABLE_KEY) {
 createRoot(document.getElementById("root")!).render(
   <ClerkProvider publishableKey={PUBLISHABLE_KEY}
       clerkJSVersion="5.56.0-snapshot.v20250312225817"
-
+      afterSignOutUrl="/"
       appearance={{
             baseTheme: [neobrutalism],
             layout: {

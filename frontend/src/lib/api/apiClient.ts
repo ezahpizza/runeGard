@@ -23,9 +23,6 @@ export class ApiError extends Error {
   }
 }
 
-/**
- * Enhanced API client with automatic token management and retry logic
- */
 export class ApiClient {
   private baseUrl: string;
   private defaultRetries: number;
@@ -35,9 +32,7 @@ export class ApiClient {
     this.defaultRetries = defaultRetries;
   }
 
-  /**
-   * Make an API request with automatic token management
-   */
+ 
   async request<T = any>(
     endpoint: string,
     config: ApiRequestConfig = {}

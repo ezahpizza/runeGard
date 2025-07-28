@@ -82,14 +82,14 @@ export const ProjectForm = ({ defaultValues, onSubmit, isLoading }: ProjectFormP
   };
 
   return (
-    <Card className="max-w-2xl mx-auto">
+    <Card className="max-w-2xl mx-auto bg-mint">
       <CardHeader>
         <CardTitle className="font-heading">Project Details</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="title">Project Title</Label>
+            <Label htmlFor="title" className="text-midBlack">Project Title </Label>
             <Input
               id="title"
               {...register('title')}
@@ -101,7 +101,7 @@ export const ProjectForm = ({ defaultValues, onSubmit, isLoading }: ProjectFormP
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="abstract">Project Abstract</Label>
+            <Label htmlFor="abstract" className="text-midBlack">Project Abstract</Label>
             <Textarea
               id="abstract"
               {...register('abstract')}
@@ -114,7 +114,7 @@ export const ProjectForm = ({ defaultValues, onSubmit, isLoading }: ProjectFormP
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="github_link">GitHub Link</Label>
+            <Label htmlFor="github_link" className="text-midBlack">GitHub Link</Label>
             <Input
               id="github_link"
               {...register('github_link')}
@@ -127,7 +127,7 @@ export const ProjectForm = ({ defaultValues, onSubmit, isLoading }: ProjectFormP
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="demo_link">Demo Link (Optional)</Label>
+            <Label htmlFor="demo_link" className="text-midBlack">Demo Link (Optional)</Label>
             <Input
               id="demo_link"
               {...register('demo_link')}
@@ -140,7 +140,7 @@ export const ProjectForm = ({ defaultValues, onSubmit, isLoading }: ProjectFormP
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="report_url">Report URL (Optional)</Label>
+            <Label htmlFor="report_url" className="text-midBlack">Report URL (Optional)</Label>
             <Input
               id="report_url"
               {...register('report_url')}
@@ -153,13 +153,13 @@ export const ProjectForm = ({ defaultValues, onSubmit, isLoading }: ProjectFormP
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="tech_stack">Technology Stack</Label>
+            <Label htmlFor="tech_stack" className="text-midBlack">Technology Stack</Label>
             <div className="flex gap-2">
               <Input
                 id="tech_stack"
                 value={currentTech}
                 onChange={(e) => setCurrentTech(e.target.value)}
-                onKeyPress={handleTechKeyPress}
+                onKeyDown={handleTechKeyPress}
                 placeholder="Add technologies (e.g., React, Node.js, Python)"
               />
               <Button type="button" onClick={addTech} variant="outline">
@@ -186,7 +186,7 @@ export const ProjectForm = ({ defaultValues, onSubmit, isLoading }: ProjectFormP
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="tags">Tags</Label>
+            <Label htmlFor="tags" className="text-midBlack">Tags</Label>
             <div className="flex gap-2">
               <Input
                 id="tags"
@@ -218,7 +218,7 @@ export const ProjectForm = ({ defaultValues, onSubmit, isLoading }: ProjectFormP
             )}
           </div>
 
-          <Button type="submit" disabled={isLoading} className="w-full">
+          <Button type="submit" disabled={isLoading} className="w-full text-midBlack">
             {isLoading ? 'Saving...' : defaultValues ? 'Update Project' : 'Create Project'}
           </Button>
         </form>

@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthWrapper } from "./components/auth/AuthWrapper";
+import { Layout } from "./components/shared/Layout";
 import RequireUserInit from "./components/auth/RequireUserInit";
 import Loading from "./components/ui/Loading";
 import LandingPage from "./pages/LandingPage";
@@ -12,7 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import CreateProject from "./pages/CreateProject";
 import EditProject from "./pages/EditProject";
 import ProjectDetail from "./pages/ProjectDetail";
-import PublicProfile from "./pages/PublicProfile";
+import Profile from "./pages/Profile";
 import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
 
@@ -60,49 +61,51 @@ const App = () => (
           fallback={<Loading message="Setting up application..." />}
         >
           <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/explore" element={<Explore />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <RequireUserInit>
-                    <Dashboard />
-                  </RequireUserInit>
-                }
-              />
-              <Route
-                path="/projects/new"
-                element={
-                  <RequireUserInit>
-                    <CreateProject />
-                  </RequireUserInit>
-                }
-              />
-              <Route
-                path="/projects/:id"
-                element={
-                  <RequireUserInit>
-                    <ProjectDetail />
-                  </RequireUserInit>
-                }
-              />
-              <Route
-                path="/projects/edit/:id"
-                element={
-                  <RequireUserInit>
-                    <EditProject />
-                  </RequireUserInit>
-                }
-              />
-              <Route path="/profile/:user_id" element={<PublicProfile />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
-              <Route path="/about" element={<NotFound />} />
-              <Route path="/developer" element={<NotFound />} />
-              <Route path="/privacy-policy" element={<NotFound />} />
-              <Route path="/code-of-conduct" element={<NotFound />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <Layout>
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/explore" element={<Explore />} />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <RequireUserInit>
+                      <Dashboard />
+                    </RequireUserInit>
+                  }
+                />
+                <Route
+                  path="/projects/new"
+                  element={
+                    <RequireUserInit>
+                      <CreateProject />
+                    </RequireUserInit>
+                  }
+                />
+                <Route
+                  path="/projects/:id"
+                  element={
+                    <RequireUserInit>
+                      <ProjectDetail />
+                    </RequireUserInit>
+                  }
+                />
+                <Route
+                  path="/projects/edit/:id"
+                  element={
+                    <RequireUserInit>
+                      <EditProject />
+                    </RequireUserInit>
+                  }
+                />
+                <Route path="/profile/:user_id" element={<Profile />} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
+                <Route path="/about" element={<NotFound />} />
+                <Route path="/developer" element={<NotFound />} />
+                <Route path="/privacy-policy" element={<NotFound />} />
+                <Route path="/code-of-conduct" element={<NotFound />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Layout>
           </BrowserRouter>
         </AuthWrapper>
       </TooltipProvider>

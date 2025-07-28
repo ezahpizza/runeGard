@@ -17,7 +17,7 @@ const Explore = () => {
     const matchesSearch = project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          project.abstract.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesTags = selectedTags.length === 0 || 
-                       selectedTags.some(tag => project.tech_stack.includes(tag));
+                       selectedTags.some(tag => (project.tags || []).includes(tag));
     return matchesSearch && matchesTags;
   });
 

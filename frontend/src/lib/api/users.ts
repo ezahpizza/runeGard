@@ -14,7 +14,8 @@ import type {
   UserUpdateInput, 
 } from '@/lib/types/user';
 
-// Initialize user profile on first login
+
+// Initialize on first login
 export const useInitUser = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -23,7 +24,7 @@ export const useInitUser = () => {
       return userSchema.parse(data);
     },
     onSuccess: (data) => {
-      // Update the cache with the new user data
+      // Update  cache with new user data
       queryClient.setQueryData(['user', 'me'], data);
       queryClient.invalidateQueries({ queryKey: ['user', 'me'] });
       queryClient.invalidateQueries({ queryKey: ['users'] });
@@ -40,7 +41,6 @@ export const useCurrentUser = (options?: { enabled?: boolean }) =>
         const data = await apiClient.get(`${apiRoutes.users}/me`);
         return userSchema.parse(data);
       } catch (error: any) {
-        // Handle 404 - user not initialized
         if (error?.status === 404) {
           debug.log('useCurrentUser: User not initialized (404)');
           return null;
@@ -48,11 +48,11 @@ export const useCurrentUser = (options?: { enabled?: boolean }) =>
         throw error;
       }
     },
-    retry: false, // Don't retry on 404 - means user not initialized
-    enabled: options?.enabled ?? true, // Allow disabling the query
-    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
-    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
-    refetchOnWindowFocus: false, // Don't refetch when window regains focus
+    retry: false, 
+    enabled: options?.enabled ?? true, 
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000, 
+    refetchOnWindowFocus: false,
   });
 
 // Update current user's profile
@@ -96,7 +96,7 @@ export const useUserById = (userId: string) =>
     enabled: !!userId,
   });
 
-// Get user's projects - matches backend get_user_projects response structure
+// Get user's projects
 export const useUserProjects = (userId: string, page: number = 1, limit: number = 10) =>
   useQuery({
     queryKey: ['user', userId, 'projects', { page, limit }],
@@ -106,12 +106,31 @@ export const useUserProjects = (userId: string, page: number = 1, limit: number 
         limit: limit.toString()
       });
       const data = await apiClient.get(`${apiRoutes.users}/${userId}/projects?${params}`, { skipAuth: true });
-      return userProjectsSchema.parse(data);
+      debug.log('useUserProjects - Raw API Response:', data);
+      
+      if ((data as any)?.projects && (data as any).projects.length > 0) {
+        debug.log('useUserProjects - First project created_at:', {
+          raw: (data as any).projects[0].created_at,
+          type: typeof (data as any).projects[0].created_at,
+          isValidDate: !isNaN(new Date((data as any).projects[0].created_at).getTime()),
+          parsedDate: new Date((data as any).projects[0].created_at).toISOString()
+        });
+      }
+      
+      try {
+        const parsedData = userProjectsSchema.parse(data);
+        debug.log('useUserProjects - Successfully parsed:', parsedData);
+        return parsedData;
+      } catch (error) {
+        debug.error('useUserProjects - Schema parse error:', error);
+        debug.error('useUserProjects - Raw data that failed:', data);
+        throw error;
+      }
     },
     enabled: !!userId,
   });
 
-// Get user statistics - matches backend get_user_stats response structure  
+// Get user statistics 
 export const useUserStats = (userId: string) =>
   useQuery({
     queryKey: ['user', userId, 'stats'],
@@ -122,7 +141,7 @@ export const useUserStats = (userId: string) =>
     enabled: !!userId,
   });
 
-// Search users with filters - matches backend search users response structure
+// Search users with filters 
 export const useUsers = (params?: {
   search?: string;
   skills?: string[];
@@ -148,7 +167,7 @@ export const useUsers = (params?: {
     },
   });
 
-// Create user - for components that need explicit user creation
+// Create user 
 export const useCreateUser = () => {
   const queryClient = useQueryClient();
   return useMutation({

@@ -1,12 +1,12 @@
 import { useParams, Navigate } from 'react-router-dom';
 import { useUserById, useUserProjects } from '@/lib/api/users';
 import { useUserTestimonials } from '@/lib/api/testimonials';
-import { PublicProfile as PublicProfileComponent } from '@/components/profile/PublicProfile';
+import { PublicProfile } from '@/components/profile/PublicProfile';
 import { UserProjectsGrid } from '@/components/profile/UserProjectsGrid';
 import { TestimonialSection } from '@/components/profile/TestimonialSection';
 import { motion } from 'framer-motion';
 
-const PublicProfile = () => {
+const Profile = () => {
   const { user_id } = useParams<{ user_id: string }>();
   const { data: user, isLoading: userLoading, isError: userError } = useUserById(user_id || '');
   const { data: userProjectsData } = useUserProjects(user_id || '');
@@ -33,7 +33,6 @@ const PublicProfile = () => {
   }
 
   const userProjects = userProjectsData?.projects || [];
-
   const userTestimonials = userTestimonialsData?.testimonials || [];
 
   return (
@@ -48,7 +47,7 @@ const PublicProfile = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <PublicProfileComponent user={user} />
+          <PublicProfile user={user} />
         </motion.div>
 
         <motion.div
@@ -73,4 +72,4 @@ const PublicProfile = () => {
   );
 };
 
-export default PublicProfile;
+export default Profile;

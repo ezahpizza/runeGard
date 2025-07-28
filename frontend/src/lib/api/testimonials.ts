@@ -11,7 +11,7 @@ import type {
   UpdateTestimonialInput
 } from '@/lib/types/testimonial';
 
-// Fetch testimonials for a specific user - matches backend get_user_testimonials response structure
+// Fetch testimonials for a specific user 
 export const useUserTestimonials = (userId: string, page: number = 1, limit: number = 10) =>
   useQuery({
     queryKey: ['testimonials', 'user', userId, { page, limit }],
@@ -21,13 +21,13 @@ export const useUserTestimonials = (userId: string, page: number = 1, limit: num
         limit: limit.toString()
       });
       const data = await apiClient.get(`${apiRoutes.testimonials}/users/${userId}?${params}`, { skipAuth: true });
-      // Backend returns paginated response with testimonials array
+
       return paginatedTestimonialsSchema.parse(data);
     },
     enabled: !!userId,
   });
 
-// Check if current user has already left a testimonial for target user - matches backend check_testimonial_exists response
+// Check if current user has already left a testimonial for target user 
 export const useCheckTestimonialExists = (toUserId: string) =>
   useQuery({
     queryKey: ['testimonial', 'exists', toUserId],
@@ -39,7 +39,7 @@ export const useCheckTestimonialExists = (toUserId: string) =>
     enabled: !!toUserId,
   });
 
-// Fetch testimonial by ID - matches backend get_testimonial response
+// Fetch testimonial by ID 
 export const useTestimonialById = (id: string) =>
   useQuery({
     queryKey: ['testimonial', id],
@@ -50,7 +50,7 @@ export const useTestimonialById = (id: string) =>
     enabled: !!id,
   });
 
-// Create testimonial - matches backend create_testimonial response
+// Create testimonial 
 export const useCreateTestimonial = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -66,7 +66,7 @@ export const useCreateTestimonial = () => {
   });
 };
 
-// Update testimonial - matches backend update_testimonial response
+// Update testimonial 
 export const useUpdateTestimonial = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -82,7 +82,7 @@ export const useUpdateTestimonial = () => {
   });
 };
 
-// Delete testimonial - matches backend delete_testimonial endpoint
+// Delete testimonial 
 export const useDeleteTestimonial = () => {
   const queryClient = useQueryClient();
   return useMutation({

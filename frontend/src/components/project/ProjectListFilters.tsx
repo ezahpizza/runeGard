@@ -20,9 +20,9 @@ export const ProjectListFilters = ({
   onTagsChange, 
   allProjects 
 }: ProjectListFiltersProps) => {
-  // Get all unique tech stack items from projects since ProjectSummary doesn't have tags
+  // Get all unique tags from projects
   const allTags = Array.from(
-    new Set(allProjects.flatMap(project => project.tech_stack))
+    new Set(allProjects.flatMap(project => project.tags || []))
   ).sort();
 
   const toggleTag = (tag: string) => {

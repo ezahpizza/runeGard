@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { UpvoteButton } from './UpvoteButton';
 import { Edit, Users, Calendar, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { formatDate } from '@/lib/utils/dateUtils';
 import type { Project } from '@/lib/types/project';
 
 interface ProjectDetailProps {
@@ -33,7 +34,7 @@ export const ProjectDetail = ({ project }: ProjectDetailProps) => {
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Calendar size={16} />
-                  <span>Created {new Date(project.created_at).toLocaleDateString()}</span>
+                  <span>Created {formatDate(project.created_at)}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Users size={16} />

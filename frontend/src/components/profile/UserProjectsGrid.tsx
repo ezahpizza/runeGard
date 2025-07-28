@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProjectCard } from '@/components/project/ProjectCard';
 import { motion } from 'framer-motion';
+import { debug } from '@/lib/utils/debug';
 import type { Project } from '@/lib/types/project';
 
 interface UserProjectsGridProps {
@@ -8,6 +9,12 @@ interface UserProjectsGridProps {
 }
 
 export const UserProjectsGrid = ({ projects }: UserProjectsGridProps) => {
+  debug.log('UserProjectsGrid Debug:', {
+    projects,
+    projectsLength: projects.length,
+    firstProject: projects[0]
+  });
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -15,7 +22,7 @@ export const UserProjectsGrid = ({ projects }: UserProjectsGridProps) => {
     >
       <Card className="border-2 border-r-4 border-b-4 border-foreground">
         <CardHeader>
-          <CardTitle className="font-heading text-xl">
+          <CardTitle className="font-heading text-xl text-muted-foreground">
             Projects ({projects.length})
           </CardTitle>
         </CardHeader>

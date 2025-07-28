@@ -14,7 +14,7 @@ import type {
   PaginatedProjects
 } from '@/lib/types/project';
 
-// Fetch all projects with filters - matches backend get_projects response structure
+// Fetch all projects with filters 
 export const useProjects = (params?: {
   tech_stack?: string[];
   tags?: string[];
@@ -40,12 +40,11 @@ export const useProjects = (params?: {
       
       const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
       const data = await apiClient.get(`${apiRoutes.projects}${query}`, { skipAuth: true });
-      // Backend returns paginated response with projects array
       return paginatedProjectsSchema.parse(data);
     },
   });
 
-// Fetch trending projects - matches backend get_trending_projects endpoint
+// Fetch trending projects 
 export const useTrendingProjects = (limit: number = 10) =>
   useQuery({
     queryKey: ['projects', 'trending', limit],
@@ -56,7 +55,7 @@ export const useTrendingProjects = (limit: number = 10) =>
     },
   });
 
-// Fetch project by ID - matches backend get_project_by_id response
+// Fetch project by ID 
 export const useProjectById = (id: string) =>
   useQuery({
     queryKey: ['project', id],
@@ -67,7 +66,7 @@ export const useProjectById = (id: string) =>
     enabled: !!id,
   });
 
-// Create project - matches backend create_project response
+// Create project
 export const useCreateProject = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -81,7 +80,7 @@ export const useCreateProject = () => {
   });
 };
 
-// Update project - matches backend update_project response
+// Update project 
 export const useUpdateProject = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -96,7 +95,7 @@ export const useUpdateProject = () => {
   });
 };
 
-// Delete project - matches backend delete_project endpoint
+// Delete project 
 export const useDeleteProject = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -104,13 +103,28 @@ export const useDeleteProject = () => {
       await apiClient.delete(`${apiRoutes.projects}/${id}`);
       return id;
     },
-    onSuccess: () => {
+    onSuccess: (deletedProjectId) => {
+      // Invalidate general project queries
       queryClient.invalidateQueries({ queryKey: ['projects'] });
+      
+      // Invalidate specific project query
+      queryClient.invalidateQueries({ queryKey: ['project', deletedProjectId] });
+      
+      // Invalidate trending projects 
+      queryClient.invalidateQueries({ queryKey: ['projects', 'trending'] });
+      
+      // Invalidate all user-specific project queries since we don't know which user deleted it
+      queryClient.invalidateQueries({ queryKey: ['user'], predicate: (query) => {
+        return query.queryKey.includes('projects');
+      }});
+      
+      //  remove the deleted project from cache immediately 
+      queryClient.removeQueries({ queryKey: ['project', deletedProjectId] });
     },
   });
 };
 
-// Upvote/remove upvote from project - matches backend upvote_project response
+// Upvote/remove upvote from project 
 export const useUpvoteProject = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -125,7 +139,7 @@ export const useUpvoteProject = () => {
   });
 };
 
-// Add contributor to project - matches backend add_contributor response
+// Add contributor to project 
 export const useAddContributor = () => {
   const queryClient = useQueryClient();
   return useMutation({

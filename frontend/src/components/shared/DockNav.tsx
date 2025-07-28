@@ -1,23 +1,24 @@
 import { VscHome, VscAccount, VscSignIn, VscSignOut } from 'react-icons/vsc';
 import { IoIosInformationCircleOutline } from "react-icons/io";
 import { useMemo, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Dock from '@/components/ui/Dock';
 import { motion } from 'framer-motion';
+import type { UserResource } from '@clerk/types';
+
 
 type DockNavProps = {
   isSignedIn?: boolean;
   signInRef?: React.RefObject<HTMLButtonElement>;
   signOutRef?: React.RefObject<HTMLButtonElement>;
+  user?: UserResource;
 };
 
-const DockNav = ({ isSignedIn, signInRef, signOutRef }: DockNavProps) => {
+const DockNav = ({ isSignedIn, signInRef, signOutRef, user }: DockNavProps) => {
   const navigate = useNavigate();
-  const { pathname } = useLocation();
-
   const goHome = useCallback(() => navigate('/'), [navigate]);
   const goabout = useCallback(() => navigate('/about'), [navigate]);
-  const goProfile = useCallback(() => navigate('/profile'), [navigate]);
+  const goProfile = useCallback(() => navigate(`/profile/${user?.id}`), [navigate, user?.id]);
 
   const handleAuthClick = useCallback(() => {
     if (isSignedIn) {
@@ -35,22 +36,16 @@ const DockNav = ({ isSignedIn, signInRef, signOutRef }: DockNavProps) => {
     signOut: <VscSignOut size={18} />,
   }), []);
 
-  const baseItems = useMemo(() => ([
+  const items = useMemo(() => ([
     { icon: icons.home, label: 'Home', onClick: goHome },
     { icon: icons.about, label: 'Learn More', onClick: goabout },
     { icon: icons.profile, label: 'Profile', onClick: goProfile },
-  ]), [icons, goHome, goabout, goProfile]);
-
-  const homeItems = useMemo(() => ([
-    ...baseItems,
     {
       icon: isSignedIn ? icons.signOut : icons.signIn,
       label: isSignedIn ? 'Sign Out' : 'Sign In',
       onClick: handleAuthClick,
     },
-  ]), [baseItems, isSignedIn, handleAuthClick, icons]);
-
-  const items = pathname === '/' ? homeItems : baseItems;
+  ]), [icons, goHome, goabout, goProfile]);
 
   return (
     <motion.div

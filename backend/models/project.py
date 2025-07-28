@@ -29,6 +29,13 @@ class ProjectBase(BaseModel):
     @classmethod
     def validate_abstract(cls, v):
         return v.strip()
+    
+    @field_validator('demo_link', 'report_url', mode='before')
+    @classmethod
+    def validate_optional_urls(cls, v):
+        if v == "" or v is None:
+            return None
+        return v
 
 
 class ProjectCreate(ProjectBase):
@@ -59,6 +66,20 @@ class ProjectUpdate(BaseModel):
         if v:
             return v.strip()
         return v
+    
+    @field_validator('demo_link', 'report_url', mode='before')
+    @classmethod
+    def validate_optional_urls(cls, v):
+        if v == "" or v is None:
+            return None
+        return v
+    
+    @field_validator('github_link', mode='before')
+    @classmethod
+    def validate_github_link(cls, v):
+        if v == "":
+            return None
+        return v
 
 
 class Project(ProjectBase, TimeStampMixin):
@@ -81,6 +102,7 @@ class ProjectSummary(BaseModel):
     featured: bool
     status: ProjectStatus
     created_at: datetime
+    tags: List[str] = Field(default_factory=list)
     
     class Config:
         from_attributes = True

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Quote, Plus, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { formatDate } from '@/lib/utils/dateUtils';
 import type { TestimonialWithUser } from '@/lib/types/testimonial';
 
 interface TestimonialSectionProps {
@@ -89,7 +90,7 @@ export const TestimonialSection = ({ testimonials, userId }: TestimonialSectionP
                         
                         <div className="flex items-center gap-1">
                           <Calendar size={14} />
-                          <span>{new Date(testimonial.created_at).toLocaleDateString()}</span>
+                          <span>{formatDate(testimonial.created_at)}</span>
                         </div>
                       </div>
                     </div>

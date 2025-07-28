@@ -3,7 +3,6 @@ import { useUser, useAuth } from '@clerk/clerk-react';
 import { setClerkAuth } from '@/lib/auth/tokenManager';
 import { useAuthStateMonitor } from '@/lib/hooks/useAuthStateMonitor';
 import { debug } from '@/lib/utils/debug';
-import '@/lib/debug/authDebug'; // Import debug utilities
 import Loading from '@/components/ui/Loading';
 
 interface AuthWrapperProps {

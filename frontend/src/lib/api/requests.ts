@@ -13,7 +13,7 @@ import type {
   PaginatedTeammateRequests 
 } from '@/lib/types/request';
 
-// Fetch all requests with filters - matches backend get_requests response structure
+// Fetch all requests with filters 
 export const useTeammateRequests = (params?: {
   tags?: string[];
   search?: string;
@@ -33,12 +33,11 @@ export const useTeammateRequests = (params?: {
       
       const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
       const data = await apiClient.get(`${apiRoutes.requests}${query}`, { skipAuth: true });
-      // Backend returns paginated response with requests array
       return paginatedTeammateRequestsSchema.parse(data);
     },
   });
 
-// Fetch current user's requests - matches backend get_user_requests response structure
+// Fetch current user's requests 
 export const useMyRequests = (page: number = 1, limit: number = 10) =>
   useQuery({
     queryKey: ['requests', 'my', { page, limit }],
@@ -48,12 +47,11 @@ export const useMyRequests = (page: number = 1, limit: number = 10) =>
         limit: limit.toString()
       });
       const data = await apiClient.get(`${apiRoutes.requests}/my?${params}`);
-      // Backend returns paginated response with requests array
       return paginatedTeammateRequestsSchema.parse(data);
     },
   });
 
-// Fetch recent requests - matches backend get_recent_requests response
+// Fetch recent requests 
 export const useRecentRequests = (limit: number = 10) =>
   useQuery({
     queryKey: ['requests', 'recent', limit],
@@ -64,7 +62,7 @@ export const useRecentRequests = (limit: number = 10) =>
     },
   });
 
-// Fetch requests by tags - matches backend get_requests_by_tags response
+// Fetch requests by tags 
 export const useRequestsByTags = (tags: string[], limit: number = 10) =>
   useQuery({
     queryKey: ['requests', 'by-tags', tags, limit],
@@ -77,7 +75,7 @@ export const useRequestsByTags = (tags: string[], limit: number = 10) =>
     enabled: tags.length > 0,
   });
 
-// Fetch requests for a specific project - matches backend get_requests_by_project response
+// Fetch requests for a specific project 
 export const useProjectRequests = (projectId: string, page: number = 1, limit: number = 10) =>
   useQuery({
     queryKey: ['requests', 'project', projectId, { page, limit }],
@@ -87,13 +85,12 @@ export const useProjectRequests = (projectId: string, page: number = 1, limit: n
         limit: limit.toString()
       });
       const data = await apiClient.get(`${apiRoutes.requests}/project/${projectId}?${params}`, { skipAuth: true });
-      // Backend returns paginated response with requests array
       return paginatedTeammateRequestsSchema.parse(data);
     },
     enabled: !!projectId,
   });
 
-// Fetch request by ID - matches backend get_request_by_id response
+// Fetch request by ID 
 export const useRequestById = (id: string) =>
   useQuery({
     queryKey: ['request', id],
@@ -104,7 +101,7 @@ export const useRequestById = (id: string) =>
     enabled: !!id,
   });
 
-// Create request - matches backend create_request response
+// Create request 
 export const useCreateRequest = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -118,7 +115,7 @@ export const useCreateRequest = () => {
   });
 };
 
-// Update request - matches backend update_request response
+// Update request
 export const useUpdateRequest = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -133,7 +130,7 @@ export const useUpdateRequest = () => {
   });
 };
 
-// Delete request - matches backend delete_request endpoint
+// Delete request
 export const useDeleteRequest = () => {
   const queryClient = useQueryClient();
   return useMutation({

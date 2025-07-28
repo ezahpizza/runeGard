@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { UserButton } from '@clerk/clerk-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -53,8 +52,6 @@ export const DashboardHeader = ({ user }: DashboardHeaderProps) => {
                   View Profile
                 </Link>
               </Button>
-              
-              <UserButton afterSignOutUrl="/" />
             </div>
           </div>
         </CardContent>
