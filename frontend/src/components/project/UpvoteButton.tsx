@@ -68,7 +68,7 @@ export const UpvoteButton = ({
         onClick={handleUpvote}
         disabled={upvoteMutation.isPending}
         className={`flex flex-col items-center gap-1 h-auto py-2 px-3 transition-all duration-200 ${
-          voted ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
+          voted ? 'bg-nightBlue text-primary-foreground' : 'hover:bg-muted'
         } ${upvoteMutation.isPending ? 'opacity-70 cursor-not-allowed' : ''}`}
       >
         <motion.div

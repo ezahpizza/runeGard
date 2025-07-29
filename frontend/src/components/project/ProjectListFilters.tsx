@@ -44,8 +44,8 @@ export const ProjectListFilters = ({
       animate={{ opacity: 1, y: 0 }}
       className="space-y-4 mb-8"
     >
-      <Card className="border-2 border-foreground">
-        <CardContent className="p-6 space-y-4">
+      <Card className="bg-nightBlue">
+        <CardContent className="p-6 space-y-4 ">
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />

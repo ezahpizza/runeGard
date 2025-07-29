@@ -20,9 +20,9 @@ export const UserProjectsGrid = ({ projects }: UserProjectsGridProps) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      <Card className="border-2 border-r-4 border-b-4 border-foreground">
+      <Card className="border-2 border-r-4 border-b-4 border-foreground bg-apricot text-midBlack">
         <CardHeader>
-          <CardTitle className="font-heading text-xl text-muted-foreground">
+          <CardTitle className="font-heading text-xl">
             Projects ({projects.length})
           </CardTitle>
         </CardHeader>

@@ -52,15 +52,12 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
             </div>
           </div>
           
-          <div className="flex gap-2">
-            <Button asChild size="sm" className="flex-1 text-midBlack">
+            <Button asChild size="sm" className="text-midBlack bg-rumba">
               <Link to={`/projects/${project.id}`}>
                 <Eye size={16} />
                 View Details
               </Link>
             </Button>
-
-          </div>
         </CardContent>
       </Card>
     </div>

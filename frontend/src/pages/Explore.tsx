@@ -51,7 +51,7 @@ const Explore = () => {
           className="mb-8"
         >
           <h1 className="text-4xl font-heading font-bold mb-4">Explore Projects</h1>
-          <p className="text-muted-foreground">Discover amazing final-year projects and find collaboration opportunities</p>
+          <p className="text-muted-foreground">Discover amazing projects and find collaboration opportunities</p>
         </motion.div>
 
         <motion.div

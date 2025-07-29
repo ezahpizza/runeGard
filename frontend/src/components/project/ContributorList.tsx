@@ -6,6 +6,7 @@ import { Crown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { User } from '@/lib/types/user';
 
+
 interface ContributorListProps {
   contributors: User[];
   createdBy: string;
@@ -20,7 +21,7 @@ export const ContributorList = ({ contributors, createdBy }: ContributorListProp
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      <Card className="border-2 border-r-4 border-b-4 border-foreground">
+      <Card className="border-2 border-r-4 border-b-4 border-foreground bg-rumba">
         <CardHeader>
           <CardTitle className="font-heading flex items-center gap-2">
             Contributors ({contributors.length})
@@ -36,16 +37,17 @@ export const ContributorList = ({ contributors, createdBy }: ContributorListProp
             >
               <Link 
                 to={`/profile/${owner.user_id}`}
-                className="flex items-center gap-3 p-3 border-2 border-foreground rounded-lg hover:bg-accent transition-colors"
+                className="flex items-center gap-3 p-3 border-2 border-foreground rounded-lg bg-mint hover:bg-lavenda transition-colors"
               >
-                <Avatar>
-                  <AvatarFallback>{owner.name.charAt(0).toUpperCase()}</AvatarFallback>
+
+                <Avatar className="h-8 w-8">
+                      <AvatarFallback>{owner.name.charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
-                
-                <div className="flex-1">
+       
+                <div className="flex-1 text-midBlack">
                   <div className="flex items-center gap-2">
                     <h4 className="font-body font-medium">{owner.name}</h4>
-                    <Badge variant="default" className="flex items-center gap-1">
+                    <Badge variant="default" className="flex items-center gap-1 text-midBlack">
                       <Crown size={12} />
                       Owner
                     </Badge>

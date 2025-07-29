@@ -24,14 +24,14 @@ export const ProjectDetail = ({ project }: ProjectDetailProps) => {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      <Card className="border-2 border-r-4 border-b-4 border-foreground">
+      <Card className="border-2 border-r-4 border-b-4 border-foreground bg-apricot text-midBlack">
         <CardHeader>
           <div className="flex items-start justify-between">
             <div className="space-y-2">
               <CardTitle className="font-heading text-3xl">
                 {project.title}
               </CardTitle>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-4 text-sm">
                 <div className="flex items-center gap-1">
                   <Calendar size={16} />
                   <span>Created {formatDate(project.created_at)}</span>
@@ -82,7 +82,7 @@ export const ProjectDetail = ({ project }: ProjectDetailProps) => {
           <div className="flex gap-3">
             <Button 
               onClick={() => navigate('/requests/new', { state: { projectId: project.id } })}
-              className="flex-1 sm:flex-none"
+              className="flex-1 sm:flex-none bg-nightBlue text-boneWhite"
             >
               <MessageSquare size={16} />
               Join Project
