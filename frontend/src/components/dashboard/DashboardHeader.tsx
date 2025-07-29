@@ -17,7 +17,7 @@ export const DashboardHeader = ({ user }: DashboardHeaderProps) => {
       animate={{ opacity: 1, y: 0 }}
       className="mb-8"
     >
-      <Card className="border-2 border-r-4 border-b-4 border-foreground">
+      <Card className="border-2 border-r-4 border-b-4 border-foreground bg-lavenda">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -28,25 +28,18 @@ export const DashboardHeader = ({ user }: DashboardHeaderProps) => {
                 </AvatarFallback>
               </Avatar>
               
-              <div>
+              <div className="text-midBlack">
                 <h1 className="text-3xl font-heading font-bold">
                   Welcome back, {user.firstName || 'User'}!
                 </h1>
-                <p className="text-muted-foreground">
+                <p>
                   Manage your projects and track your collaborations
                 </p>
               </div>
             </div>
             
             <div className="flex items-center gap-3">
-              <Button asChild>
-                <Link to="/projects/new">
-                  <Plus size={16} />
-                  New Project
-                </Link>
-              </Button>
-              
-              <Button asChild variant="outline">
+              <Button asChild className='bg-mint text-midBlack'>
                 <Link to={`/profile/${user.id}`}>
                   <User size={16} />
                   View Profile

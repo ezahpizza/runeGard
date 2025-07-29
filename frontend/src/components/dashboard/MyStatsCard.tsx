@@ -20,21 +20,21 @@ export const MyStatsCard = ({ stats }: MyStatsCardProps) => {
       value: stats.projectsCount,
       icon: FolderOpen,
       color: 'text-apricot',
-      bgColor: 'bg-apricot/10',
+      bgColor: 'bg-apricot',
     },
     {
       title: 'Requests Sent',
       value: stats.requestsCount,
       icon: MessageSquare,
       color: 'text-nightBlue',
-      bgColor: 'bg-nightBlue/10',
+      bgColor: 'bg-nightBlue',
     },
     {
       title: 'Collaborations',
       value: stats.collaborationsCount,
       icon: Users,
       color: 'text-mint',
-      bgColor: 'bg-mint/10',
+      bgColor: 'bg-mint',
     },
   ];
 
@@ -51,10 +51,10 @@ export const MyStatsCard = ({ stats }: MyStatsCardProps) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1 }}
         >
-          <Card className="border-2 border-r-4 border-b-4 border-foreground hover:translate-x-1 hover:translate-y-1 hover:border-r-2 hover:border-b-2 transition-all">
+          <Card className={`${item.bgColor} border-2 border-r-4 border-b-4 border-foreground hover:translate-x-1 hover:translate-y-1 hover:border-r-2 hover:border-b-2 transition-all`}>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg font-heading">
-                <div className={`p-2 rounded-lg ${item.bgColor}`}>
+                <div className={`p-2 rounded-lg bg-foreground`}>
                   <item.icon size={20} className={item.color} />
                 </div>
                 {item.title}

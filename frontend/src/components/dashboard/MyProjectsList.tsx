@@ -61,11 +61,11 @@ export const MyProjectsList = ({ projects, isLoading }: MyProjectsListProps) => 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      <Card className="border-2 border-r-4 border-b-4 border-foreground">
+      <Card className="border-2 border-r-4 border-b-4 border-foreground bg-rumba">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="font-heading text-xl">My Projects</CardTitle>
-            <Button asChild size="sm">
+            <Button asChild size="sm" className='text-midBlack'>
               <Link to="/projects/new">
                 <Plus size={16} />
                 Create New
@@ -99,7 +99,7 @@ export const MyProjectsList = ({ projects, isLoading }: MyProjectsListProps) => 
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="p-4 border-2 border-foreground rounded-lg hover:bg-accent transition-colors"
+                  className="p-4 border-2 border-foreground bg-background rounded-lg"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 space-y-2">
@@ -131,7 +131,7 @@ export const MyProjectsList = ({ projects, isLoading }: MyProjectsListProps) => 
                         </Link>
                       </Button>
                       
-                      <Button asChild size="sm">
+                      <Button asChild size="sm" className='bg-rumba text-midBlack'>
                         <Link to={`/projects/edit/${project.id}`}>
                           <Edit size={14} />
                           Edit
@@ -139,37 +139,34 @@ export const MyProjectsList = ({ projects, isLoading }: MyProjectsListProps) => 
                       </Button>
 
                       <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    className="flex items-center gap-1 border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
-                    disabled={deleteProjectMutation.isPending}
-                  >
-                    <Trash2 size={16} />
-                  </Button>
-
-
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Project</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to delete "{project.title}"? This action cannot be undone and will permanently remove the project and all associated data.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction 
-                      onClick={() => handleDelete(project)}
-                      className="bg-red-500 text-white hover:bg-red-600"
-                    >
-                      {deleteProjectMutation.isPending ? "Deleting..." : "Delete Project"}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="flex items-center gap-1 border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                            disabled={deleteProjectMutation.isPending}
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Project</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete "{project.title}"? This action cannot be undone and will permanently remove the project and all associated data.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={() => handleDelete(project)}
+                              className="bg-red-500 text-white hover:bg-red-600"
+                            >
+                              {deleteProjectMutation.isPending ? "Deleting..." : "Delete Project"}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                 </motion.div>
