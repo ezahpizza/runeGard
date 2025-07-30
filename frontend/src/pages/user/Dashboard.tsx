@@ -3,9 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { useProjects } from '@/lib/api/projects';
 import { useMyRequests } from '@/lib/api/requests';
 import { useCurrentUser } from '@/lib/api/users';
-import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
-import { MyStatsCard } from '@/components/dashboard/MyStatsCard';
-import { MyProjectsList } from '@/components/dashboard/MyProjectsList';
+import { DashboardHeader, MyStatsCard, MyProjectsList, MyRequestsList } from '@/components/dashboard';
 import { motion } from 'framer-motion';
 import Loading from '@/components/ui/Loading';
 
@@ -64,10 +62,22 @@ const Dashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
+          className="mb-8"
         >
           <MyProjectsList 
             projects={userProjects} 
             isLoading={projectsLoading} 
+          />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <MyRequestsList 
+            requests={requests?.requests || []} 
+            isLoading={requestsLoading} 
           />
         </motion.div>
       </div>

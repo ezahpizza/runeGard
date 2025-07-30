@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { UpvoteButton } from './UpvoteButton';
+import { UpvoteButton } from './index';
 import { Edit, Users, Calendar, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { formatDate } from '@/lib/utils/dateUtils';
@@ -13,7 +13,7 @@ interface ProjectDetailProps {
   project: Project;
 }
 
-export const ProjectDetail = ({ project }: ProjectDetailProps) => {
+export const ProjectInfo = ({ project }: ProjectDetailProps) => {
   const { user } = useUser();
   const navigate = useNavigate();
   const isOwner = user?.id === project.created_by;
@@ -85,7 +85,7 @@ export const ProjectDetail = ({ project }: ProjectDetailProps) => {
               className="flex-1 sm:flex-none bg-nightBlue text-boneWhite"
             >
               <MessageSquare size={16} />
-              Join Project
+              Find Teammates
             </Button>
             
             <Button 

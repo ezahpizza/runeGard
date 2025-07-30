@@ -1,8 +1,7 @@
 import { z } from 'zod';
 
-// Backend TeammateRequest model - matches exactly with backend TeammateRequest model (after _id -> id conversion)
 export const teammateRequestSchema = z.object({
-  id: z.string(), // Backend returns id after _id conversion
+  id: z.string(), 
   user_id: z.string(),
   looking_for: z.string().min(1).max(200),
   description: z.string().min(10).max(1000),
@@ -12,7 +11,6 @@ export const teammateRequestSchema = z.object({
   updated_at: z.string().datetime().nullable().optional(),
 });
 
-// Backend TeammateRequestPublic model - matches exactly with backend TeammateRequestPublic model
 export const teammateRequestPublicSchema = z.object({
   id: z.string(),
   user_id: z.string(),
@@ -23,7 +21,6 @@ export const teammateRequestPublicSchema = z.object({
   created_at: z.string().datetime(),
 });
 
-// Backend TeammateRequestCreate model - matches exactly with backend TeammateRequestCreate model
 export const createTeammateRequestSchema = z.object({
   looking_for: z.string().min(1).max(200),
   description: z.string().min(10).max(1000),
@@ -31,14 +28,12 @@ export const createTeammateRequestSchema = z.object({
   tags: z.array(z.string()).max(10).default([]),
 });
 
-// Backend TeammateRequestUpdate model - matches exactly with backend TeammateRequestUpdate model
 export const updateTeammateRequestSchema = z.object({
   looking_for: z.string().min(1).max(200).optional(),
   description: z.string().min(10).max(1000).optional(),
   tags: z.array(z.string()).max(10).optional(),
 });
 
-// Paginated teammate requests response - matches backend get_requests endpoint
 export const paginatedTeammateRequestsSchema = z.object({
   requests: z.array(teammateRequestPublicSchema),
   total: z.number().int(),

@@ -1,19 +1,19 @@
 import { useParams, Navigate, useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
-import { useProjectById, useUpdateProject } from '@/lib/api/projects';
-import { ProjectForm } from '@/components/project/ProjectForm';
+import { useRequestById, useUpdateRequest } from '@/lib/api/requests';
+import { TeammateRequestForm } from '@/components/forms/TeammateRequestForm';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
 import Loading from '@/components/ui/Loading';
-import type { CreateProjectInput } from '@/lib/types/project';
+import type { UpdateTeammateRequestInput } from '@/lib/types/request';
 
-const EditProject = () => {
+const EditRequest = () => {
   const { id } = useParams<{ id: string }>();
   const { user, isLoaded } = useUser();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { data: project, isLoading, isError } = useProjectById(id || '');
-  const updateProjectMutation = useUpdateProject();
+  const { data: request, isLoading, isError } = useRequestById(id || '');
+  const updateRequestMutation = useUpdateRequest();
 
   if (!id) {
     return <Navigate to="/explore" replace />;
@@ -22,7 +22,7 @@ const EditProject = () => {
   if (!isLoaded || isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loading message="Loading project details..." />
+        <Loading message="Loading request details..." />
       </div>
     );
   }
@@ -31,36 +31,36 @@ const EditProject = () => {
     return <Navigate to="/" replace />;
   }
 
-  if (isError || !project) {
+  if (isError || !request) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-lg text-destructive">Project not found</div>
+        <div className="text-lg text-destructive">Request not found</div>
       </div>
     );
   }
 
-  if (project.created_by !== user.id) {
+  if (request.user_id !== user.id) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-lg text-destructive">You don't have permission to edit this project</div>
+        <div className="text-lg text-destructive">You don't have permission to edit this request</div>
       </div>
     );
   }
 
-  const handleSubmit = async (data: CreateProjectInput) => {
+  const handleSubmit = async (data: UpdateTeammateRequestInput) => {
     try {
-      await updateProjectMutation.mutateAsync({ id: project.id, input: data });
+      await updateRequestMutation.mutateAsync({ id: request.id, input: data });
       
       toast({
-        title: "Project Updated",
-        description: "Your project has been successfully updated!",
+        title: "Request Updated",
+        description: "Your teammate request has been successfully updated!",
       });
       
-      navigate(`/projects/${project.id}`);
+      navigate(`/requests/${request.id}`);
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to update project. Please try again.",
+        description: "Failed to update request. Please try again.",
         variant: "destructive",
       });
     }
@@ -79,8 +79,8 @@ const EditProject = () => {
           transition={{ delay: 0.1 }}
           className="mb-8"
         >
-          <h1 className="text-4xl font-heading font-bold mb-4">Edit Project</h1>
-          <p className="text-muted-foreground">Update your project details</p>
+          <h1 className="text-4xl font-heading font-bold mb-4">Edit Request</h1>
+          <p className="text-muted-foreground">Update your teammate request details</p>
         </motion.div>
 
         <motion.div
@@ -88,19 +88,14 @@ const EditProject = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <ProjectForm
+          <TeammateRequestForm
             defaultValues={{
-              title: project.title,
-              abstract: project.abstract,
-              tags: project.tags,
-              tech_stack: project.tech_stack,
-              github_link: project.github_link,
-              demo_link: project.demo_link || '',
-              report_url: project.report_url || '',
-              contributors: project.contributors,
+              looking_for: request.looking_for,
+              description: request.description,
+              tags: request.tags,
             }}
             onSubmit={handleSubmit}
-            isLoading={updateProjectMutation.isPending}
+            isLoading={updateRequestMutation.isPending}
           />
         </motion.div>
       </div>
@@ -108,4 +103,4 @@ const EditProject = () => {
   );
 };
 
-export default EditProject;
+export default EditRequest;

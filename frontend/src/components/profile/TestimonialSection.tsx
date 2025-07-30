@@ -22,7 +22,7 @@ export const TestimonialSection = ({ testimonials, userId }: TestimonialSectionP
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      <Card className="border-2 border-r-4 border-b-4 border-foreground">
+      <Card className="border-foreground">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="font-heading text-xl flex items-center gap-2">

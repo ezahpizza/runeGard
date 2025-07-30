@@ -1,8 +1,7 @@
 import { useParams, Navigate } from 'react-router-dom';
 import { useProjectById } from '@/lib/api/projects';
 import { useUsers } from '@/lib/api/users';
-import { ProjectDetail as ProjectDetailComponent } from '@/components/project/ProjectDetail';
-import { ContributorList } from '@/components/project/ContributorList';
+import { ProjectInfo, ContributorList } from '@/components/project';
 import { motion } from 'framer-motion';
 
 const ProjectDetail = () => {
@@ -46,7 +45,7 @@ const ProjectDetail = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <ProjectDetailComponent project={project} />
+          <ProjectInfo project={project} />
         </motion.div>
 
         <motion.div

@@ -4,18 +4,24 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthWrapper } from "./components/auth/AuthWrapper";
-import { Layout } from "./components/shared/Layout";
+import { Layout } from "@/components/shared";
 import RequireUserInit from "./components/auth/RequireUserInit";
 import Loading from "./components/ui/Loading";
-import LandingPage from "./pages/LandingPage";
-import Explore from "./pages/Explore";
-import Dashboard from "./pages/Dashboard";
-import CreateProject from "./pages/CreateProject";
-import EditProject from "./pages/EditProject";
-import ProjectDetail from "./pages/ProjectDetail";
-import Profile from "./pages/Profile";
-import AuthCallback from "./pages/AuthCallback";
-import NotFound from "./pages/NotFound";
+import { 
+  LandingPage, 
+  Explore, 
+  Dashboard, 
+  Profile, 
+  CreateProject, 
+  EditProject, 
+  ProjectDetail, 
+  AuthCallback, 
+  NotFound, 
+  RequestDetail, 
+  CreateRequest, 
+  EditRequest, 
+  RequestsList 
+} from "./pages";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -65,6 +71,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/explore" element={<Explore />} />
+                <Route path="/requests" element={<RequestsList />} />
                 <Route
                   path="/dashboard"
                   element={
@@ -94,6 +101,30 @@ const App = () => (
                   element={
                     <RequireUserInit>
                       <EditProject />
+                    </RequireUserInit>
+                  }
+                />
+                <Route
+                  path="/requests/new"
+                  element={
+                    <RequireUserInit>
+                      <CreateRequest />
+                    </RequireUserInit>
+                  }
+                />
+                <Route
+                  path="/requests/:id"
+                  element={
+                    <RequireUserInit>
+                      <RequestDetail />
+                    </RequireUserInit>
+                  }
+                />
+                <Route
+                  path="/requests/edit/:id"
+                  element={
+                    <RequireUserInit>
+                      <EditRequest />
                     </RequireUserInit>
                   }
                 />

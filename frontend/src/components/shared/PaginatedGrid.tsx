@@ -1,7 +1,14 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 
 interface PaginatedGridProps<T> {
   items: T[];
@@ -14,7 +21,7 @@ export function PaginatedGrid<T>({
   items, 
   renderItem, 
   itemsPerPage = 12, 
-  className = "grid gap-4" 
+  className = "grid grid-cols-1 md:grid-cols-4 gap-6" 
 }: PaginatedGridProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
   
@@ -28,7 +35,7 @@ export function PaginatedGrid<T>({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <AnimatePresence mode="wait">
         <motion.div
           key={currentPage}
@@ -44,6 +51,7 @@ export function PaginatedGrid<T>({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
+              className="group"
             >
               {renderItem(item, startIndex + index)}
             </motion.div>
@@ -66,55 +74,68 @@ export function PaginatedGrid<T>({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="flex items-center justify-center gap-2"
         >
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => goToPage(currentPage - 1)}
-            disabled={currentPage === 1}
-          >
-            <ChevronLeft size={16} />
-            Previous
-          </Button>
-          
-          <div className="flex items-center gap-1">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-              if (
-                page === 1 ||
-                page === totalPages ||
-                (page >= currentPage - 1 && page <= currentPage + 1)
-              ) {
-                return (
-                  <Button
-                    key={page}
-                    variant={page === currentPage ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => goToPage(page)}
-                    className="w-8 h-8 p-0"
-                  >
-                    {page}
-                  </Button>
-                );
-              }
+          <Pagination className="mt-8">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage > 1) goToPage(currentPage - 1);
+                  }}
+                  className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </PaginationItem>
               
-              if (page === currentPage - 2 || page === currentPage + 2) {
-                return <span key={page} className="px-2">...</span>;
-              }
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                // Show first page, last page, current page and adjacent pages
+                if (
+                  page === 1 ||
+                  page === totalPages ||
+                  (page >= currentPage - 1 && page <= currentPage + 1)
+                ) {
+                  return (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          goToPage(page);
+                        }}
+                        isActive={page === currentPage}
+                        className="cursor-pointer"
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                }
+                
+                // Show ellipsis for gaps
+                if (page === currentPage - 2 || page === currentPage + 2) {
+                  return (
+                    <PaginationItem key={page}>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  );
+                }
+                
+                return null;
+              })}
               
-              return null;
-            })}
-          </div>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => goToPage(currentPage + 1)}
-            disabled={currentPage === totalPages}
-          >
-            Next
-            <ChevronRight size={16} />
-          </Button>
+              <PaginationItem>
+                <PaginationNext 
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage < totalPages) goToPage(currentPage + 1);
+                  }}
+                  className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
         </motion.div>
       )}
       

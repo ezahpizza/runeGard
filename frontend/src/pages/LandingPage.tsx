@@ -1,10 +1,6 @@
 import { motion } from 'framer-motion';
 import { useUser } from '@clerk/clerk-react';
-import { HeroSection } from '@/components/landing/HeroSection';
-import { WhatsInStore } from '@/components/landing/WhatsInStore';
-import { RulesSection } from '@/components/landing/RulesSection';
-import { FAQSection } from '@/components/landing/FAQSection';
-import { Footer } from '@/components/landing/Footer';
+import { HeroSection, WhatsInStore, RulesSection, FAQSection, Footer } from '@/components/landing';
 import Loading from '@/components/ui/Loading';
 import Star8 from "@/components/ui/Star8"
 import Star14 from "@/components/ui/Star14"

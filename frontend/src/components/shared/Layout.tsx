@@ -1,8 +1,7 @@
 import { useRef } from 'react';
 import { SignInButton, SignOutButton, useUser } from '@clerk/clerk-react';
 import { useLocation } from 'react-router-dom';
-import { Header } from './Header';
-import DockNav from './DockNav';
+import { Header, DockNav } from './index';
 
 interface LayoutProps {
   children: React.ReactNode;

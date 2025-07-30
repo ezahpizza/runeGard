@@ -19,7 +19,7 @@ export const PublicProfile = ({ user }: PublicProfileProps) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      <Card className="border-2 border-r-4 border-b-4 border-foreground bg-lavenda">
+      <Card className="border-foreground bg-lavenda">
         <CardContent className="p-8">
           <div className="flex flex-col gap-6">
             <div className="flex-1 space-y-4">

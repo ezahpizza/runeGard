@@ -1,9 +1,7 @@
 import { useParams, Navigate } from 'react-router-dom';
 import { useUserById, useUserProjects } from '@/lib/api/users';
 import { useUserTestimonials } from '@/lib/api/testimonials';
-import { PublicProfile } from '@/components/profile/PublicProfile';
-import { UserProjectsGrid } from '@/components/profile/UserProjectsGrid';
-import { TestimonialSection } from '@/components/profile/TestimonialSection';
+import { PublicProfile, UserProjectsGrid, TestimonialSection } from '@/components/profile';
 import { motion } from 'framer-motion';
 
 const Profile = () => {

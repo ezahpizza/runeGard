@@ -68,7 +68,7 @@ export const MyStatsCard = ({ stats }: MyStatsCardProps) => {
                 </span>
                 
                 {item.value > 0 && (
-                  <Badge variant="secondary" className="flex items-center gap-1">
+                  <Badge variant="secondary" className="flex items-center gap-1 bg-lavenda text-midBlack">
                     <TrendingUp size={12} />
                     Active
                   </Badge>

@@ -1,42 +1,8 @@
-import { useState } from 'react';
-import { useProjects } from '@/lib/api/projects';
-import { ProjectListFilters } from '@/components/project/ProjectListFilters';
-import { ProjectCard } from '@/components/project/ProjectCard';
-import { PaginatedGrid } from '@/components/shared/PaginatedGrid';
 import { motion } from 'framer-motion';
-import Loading from '@/components/ui/Loading';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ProjectsList, RequestsList } from './index';
 
 const Explore = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const { data: projectsData, isLoading, isError } = useProjects();
-
-  const projects = projectsData?.projects || [];
-  
-  const filteredProjects = projects.filter(project => {
-    const matchesSearch = project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         project.abstract.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTags = selectedTags.length === 0 || 
-                       selectedTags.some(tag => (project.tags || []).includes(tag));
-    return matchesSearch && matchesTags;
-  });
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loading message="Discovering projects..." />
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-lg text-destructive">Failed to load projects</div>
-      </div>
-    );
-  }
-
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
@@ -50,8 +16,8 @@ const Explore = () => {
           transition={{ delay: 0.1 }}
           className="mb-8"
         >
-          <h1 className="text-4xl font-heading font-bold mb-4">Explore Projects</h1>
-          <p className="text-muted-foreground">Discover amazing projects and find collaboration opportunities</p>
+          <h1 className="text-4xl font-heading font-bold mb-4">Explore</h1>
+          <p className="text-muted-foreground">Discover amazing projects and collaboration opportunities</p>
         </motion.div>
 
         <motion.div
@@ -59,26 +25,30 @@ const Explore = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <ProjectListFilters
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            selectedTags={selectedTags}
-            onTagsChange={setSelectedTags}
-            allProjects={projects}
-          />
-        </motion.div>
+          <Tabs defaultValue="projects" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-8 bg-card border-mid-black p-1">
+              <TabsTrigger 
+                value="projects" 
+                className="data-[state=active]:bg-apricot data-[state=active]:text-mid-black data-[state=active]:shadow-[4px_4px_0_0_#0B1215] font-medium transition-all duration-200"
+              >
+                Projects
+              </TabsTrigger>
+              <TabsTrigger 
+                value="requests" 
+                className="data-[state=active]:bg-mint data-[state=active]:text-mid-black data-[state=active]:shadow-[4px_4px_0_0_#0B1215] font-medium transition-all duration-200"
+              >
+                Teammate Requests
+              </TabsTrigger>
+            </TabsList>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <PaginatedGrid
-            items={filteredProjects}
-            renderItem={(project) => <ProjectCard key={project.id} project={project} />}
-            itemsPerPage={12}
-            className="grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-          />
+            <TabsContent value="projects">
+              <ProjectsList standalone={false} />
+            </TabsContent>
+
+            <TabsContent value="requests">
+              <RequestsList standalone={false} />
+            </TabsContent>
+          </Tabs>
         </motion.div>
       </div>
     </motion.div>

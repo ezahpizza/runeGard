@@ -99,7 +99,7 @@ export const MyProjectsList = ({ projects, isLoading }: MyProjectsListProps) => 
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="p-4 border-2 border-foreground bg-background rounded-lg"
+                  className="p-4 border-2 border-foreground bg-lavenda text-midBlack rounded-lg"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 space-y-2">
@@ -107,11 +107,11 @@ export const MyProjectsList = ({ projects, isLoading }: MyProjectsListProps) => 
                         {project.title}
                       </h3>
                       
-                      <p className="text-muted-foreground text-sm line-clamp-2">
+                      <p className="text-sm line-clamp-2">
                         {project.abstract}
                       </p>
                       
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-4 text-sm">
                         <div className="flex items-center gap-1">
                           <Calendar size={14} />
                           <span>{formatDate(project.created_at)}</span>
@@ -124,7 +124,7 @@ export const MyProjectsList = ({ projects, isLoading }: MyProjectsListProps) => 
                     </div>
                     
                     <div className="flex gap-2">
-                      <Button asChild size="sm" variant="outline">
+                      <Button asChild size="sm" variant="outline" className="hover:bg-apricot">
                         <Link to={`/projects/${project.id}`}>
                           <Eye size={14} />
                           View

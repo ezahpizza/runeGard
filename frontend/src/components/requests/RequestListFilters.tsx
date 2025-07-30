@@ -3,26 +3,26 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Search, X } from 'lucide-react';
 import { motion } from 'framer-motion';
-import type { ProjectSummary } from '@/lib/types/project';
+import type { TeammateRequestPublic } from '@/lib/types/request';
 
-interface ProjectListFiltersProps {
+interface RequestListFiltersProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
   selectedTags: string[];
   onTagsChange: (tags: string[]) => void;
-  allProjects: ProjectSummary[];
+  allRequests: TeammateRequestPublic[];
 }
 
-export const ProjectListFilters = ({ 
+export const RequestListFilters = ({ 
   searchTerm, 
   onSearchChange, 
   selectedTags, 
   onTagsChange, 
-  allProjects 
-}: ProjectListFiltersProps) => {
-  // Get all unique tags from projects
+  allRequests 
+}: RequestListFiltersProps) => {
+  // Get all unique tags from requests
   const allTags = Array.from(
-    new Set(allProjects.flatMap(project => project.tags || []))
+    new Set(allRequests.flatMap(request => request.tags || []))
   ).sort();
 
   const toggleTag = (tag: string) => {
@@ -50,7 +50,7 @@ export const ProjectListFilters = ({
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
             <Input
-              placeholder="Search projects..."
+              placeholder="Search teammate requests..."
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
               className="pl-10"
@@ -79,7 +79,7 @@ export const ProjectListFilters = ({
                     <Badge
                       key={tag}
                       className={`cursor-pointer hover:bg-accent transition-colors text-midBlack ${
-                        isSelected ? 'bg-rumba border-2 border-midBlack' : ''
+                        isSelected ? 'bg-apricot border-2 border-midBlack' : ''
                       }`}
                       onClick={() => toggleTag(tag)}
                     >

@@ -1,7 +1,7 @@
 import { useUser } from '@clerk/clerk-react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useCreateProject } from '@/lib/api/projects';
-import { ProjectForm } from '@/components/project/ProjectForm';
+import { ProjectForm } from '@/components/project';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
 import Loading from '@/components/ui/Loading';

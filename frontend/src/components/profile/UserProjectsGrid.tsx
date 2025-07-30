@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ProjectCard } from '@/components/project/ProjectCard';
+import { ProjectCard } from '@/components/project';
 import { motion } from 'framer-motion';
 import { debug } from '@/lib/utils/debug';
 import type { Project } from '@/lib/types/project';
@@ -20,7 +20,7 @@ export const UserProjectsGrid = ({ projects }: UserProjectsGridProps) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      <Card className="border-2 border-r-4 border-b-4 border-foreground bg-apricot text-midBlack">
+      <Card className="border-foreground bg-apricot text-midBlack">
         <CardHeader>
           <CardTitle className="font-heading text-xl">
             Projects ({projects.length})

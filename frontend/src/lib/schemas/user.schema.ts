@@ -1,6 +1,5 @@
 import { z } from 'zod';
 
-// Backend User model - matches exactly with backend User model
 export const userSchema = z.object({
   user_id: z.string(),
   name: z.string().min(1).max(100),
@@ -13,7 +12,6 @@ export const userSchema = z.object({
   updated_at: z.string().datetime().nullable().optional(),
 });
 
-// Backend UserPublic model - matches exactly with backend UserPublic model
 export const userPublicSchema = z.object({
   user_id: z.string(),
   name: z.string(),
@@ -24,7 +22,6 @@ export const userPublicSchema = z.object({
   created_at: z.string().datetime(),
 });
 
-// Backend UserInit model - matches exactly with backend UserInit model
 export const userInitSchema = z.object({
   name: z.string().min(1).max(100),
   institute: z.string().min(1).max(200),
@@ -33,7 +30,6 @@ export const userInitSchema = z.object({
   bio: z.string().max(500).optional(),
 });
 
-// Backend UserUpdate model - matches exactly with backend UserUpdate model
 export const userUpdateSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   bio: z.string().max(500).optional(),
@@ -42,7 +38,6 @@ export const userUpdateSchema = z.object({
   grad_year: z.number().int().gte(2020).lte(2030).optional(),
 });
 
-// User stats response - matches backend user stats endpoint
 export const userStatsSchema = z.object({
   total_projects: z.number().int(),
   total_requests: z.number().int(),
@@ -50,7 +45,6 @@ export const userStatsSchema = z.object({
   total_upvotes_received: z.number().int(),
 });
 
-// Paginated users response - matches backend search users endpoint
 export const paginatedUsersSchema = z.object({
   users: z.array(userPublicSchema),
   total: z.number().int(),
