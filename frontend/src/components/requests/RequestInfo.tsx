@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Edit, Calendar, MessageSquare, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { formatDate } from '@/lib/utils/dateUtils';
+import { useUserById } from '@/lib/api/users';
 import type { TeammateRequest } from '@/lib/types/request';
 
 interface RequestInfoProps {
@@ -18,6 +19,7 @@ export const RequestInfo = ({
   onContact,
 }: RequestInfoProps) => {
   const { user } = useUser();
+  const { data: requestCreator, isLoading: isLoadingUser } = useUserById(request.user_id);
   const isOwner = user?.id === request.user_id;
 
   return (
@@ -40,7 +42,7 @@ export const RequestInfo = ({
                 </div>
                 <div className="flex items-center gap-1">
                   <User size={16} />
-                  <span>by {request.user_id}</span>
+                  <span>by {isLoadingUser ? 'Loading...' : (requestCreator?.name || request.user_id)}</span>
                 </div>
               </div>
             </div>

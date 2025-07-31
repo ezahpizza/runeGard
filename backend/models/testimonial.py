@@ -6,6 +6,7 @@ from .shared import TimeStampMixin
 
 class TestimonialBase(BaseModel):
     content: str = Field(..., min_length=10, max_length=500)
+    project_id: str = Field(..., description="ID of the project this testimonial is for")
     
     @field_validator('content')
     @classmethod
@@ -14,7 +15,7 @@ class TestimonialBase(BaseModel):
 
 
 class TestimonialCreate(TestimonialBase):
-    to_user: str = Field(..., description="User ID receiving the testimonial")
+    pass
 
 
 class TestimonialUpdate(BaseModel):
@@ -31,7 +32,6 @@ class TestimonialUpdate(BaseModel):
 class Testimonial(TestimonialBase, TimeStampMixin):
     id: Optional[str] = Field(None, alias="_id")
     from_user: str = Field(..., description="User ID giving the testimonial")
-    to_user: str = Field(..., description="User ID receiving the testimonial")
     
     class Config:
         from_attributes = True
@@ -41,7 +41,7 @@ class Testimonial(TestimonialBase, TimeStampMixin):
 class TestimonialPublic(BaseModel):
     id: str
     from_user: str
-    to_user: str
+    project_id: str
     content: str
     created_at: datetime
     
@@ -53,6 +53,20 @@ class TestimonialWithUser(BaseModel):
     id: str
     from_user: str
     from_user_name: str
+    project_id: str
+    content: str
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+
+class TestimonialWithProject(BaseModel):
+    id: str
+    from_user: str
+    from_user_name: str
+    project_id: str
+    project_title: str
     content: str
     created_at: datetime
     

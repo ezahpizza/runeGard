@@ -1,37 +1,32 @@
 import { useParams, Navigate } from 'react-router-dom';
-import { useUserById, useUserProjects } from '@/lib/api/users';
-import { PublicProfile, UserProjectsGrid } from '@/components/profile';
-
-import Loading from '@/components/ui/Loading';
+import { useTestimonialById } from '@/lib/api/testimonials';
+import { TestimonialInfo } from '@/components/testimonials';
 import { motion } from 'framer-motion';
+import Loading from '@/components/ui/Loading';
 
-const Profile = () => {
-  const { user_id } = useParams<{ user_id: string }>();
-  
-  const { data: user, isLoading: userLoading, isError: userError } = useUserById(user_id || '');
-  const { data: userProjectsData } = useUserProjects(user_id || '');
+const TestimonialDetail = () => {
+  const { id } = useParams<{ id: string }>();
+  const { data: testimonial, isLoading, isError } = useTestimonialById(id || '');
 
-  if (!user_id) {
+  if (!id) {
     return <Navigate to="/explore" replace />;
   }
 
-  if (userLoading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loading message="Loading profile..." />
+        <Loading message="Loading testimonial..." />
       </div>
     );
   }
 
-  if (userError || !user) {
+  if (isError || !testimonial) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-lg text-destructive">User not found</div>
+        <div className="text-lg text-destructive">Testimonial not found</div>
       </div>
     );
   }
-
-  const userProjects = userProjectsData?.projects || [];
 
   return (
     <motion.div 
@@ -41,24 +36,25 @@ const Profile = () => {
     >
       <div className="container mx-auto px-4 py-8">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
+          className="mb-8"
         >
-          <PublicProfile user={user} />
+          <h1 className="text-4xl font-heading font-bold mb-4">Testimonial Details</h1>
+          <p className="text-muted-foreground">Read about collaboration experiences</p>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="mt-8"
         >
-          <UserProjectsGrid projects={userProjects} />
+          <TestimonialInfo testimonial={testimonial} />
         </motion.div>
       </div>
     </motion.div>
   );
 };
 
-export default Profile;
+export default TestimonialDetail;

@@ -1,8 +1,10 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
+from pydantic import BaseModel
 from core.auth import get_current_user_id
 from core.middleware import create_rate_limit, search_rate_limit
 from db.crud.projects import project_crud
+from db.crud.testimonials import testimonial_crud
 from models.project import (
     ProjectCreate, 
     ProjectUpdate, 
@@ -10,6 +12,10 @@ from models.project import (
     ProjectSummary,
     ProjectUpvote
 )
+from models.testimonial import TestimonialCreate, TestimonialPublic
+
+class TestimonialContentRequest(BaseModel):
+    content: str
 
 router = APIRouter()
 
@@ -137,3 +143,28 @@ async def add_contributor(
         contributor_id, 
         current_user_id
     )
+
+
+@router.get("/{project_id}/testimonials", response_model=dict)
+async def get_project_testimonials(
+    project_id: str,
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=100)
+):
+    """Get testimonials for a specific project"""
+    return await testimonial_crud.get_testimonials_by_project(
+        project_id=project_id,
+        page=page,
+        limit=limit
+    )
+
+
+@router.post("/{project_id}/testimonials", response_model=TestimonialPublic, status_code=status.HTTP_201_CREATED)
+async def create_project_testimonial(
+    project_id: str,
+    testimonial_request: TestimonialContentRequest,
+    current_user_id: str = Depends(get_current_user_id)
+):
+    """Create a testimonial for a specific project"""
+    testimonial_data = TestimonialCreate(content=testimonial_request.content, project_id=project_id)
+    return await testimonial_crud.create_testimonial(testimonial_data, current_user_id)

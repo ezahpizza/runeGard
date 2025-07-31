@@ -10,5 +10,8 @@ export * from './project';
 // Request pages
 export * from './request';
 
+// Testimonial pages
+export * from './testimonial';
+
 // User pages
 export * from './user';

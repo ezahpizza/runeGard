@@ -20,7 +20,10 @@ import {
   RequestDetail, 
   CreateRequest, 
   EditRequest, 
-  RequestsList 
+  RequestsList,
+  CreateTestimonial,
+  EditTestimonial,
+  TestimonialDetail
 } from "./pages";
 
 const queryClient = new QueryClient({
@@ -128,7 +131,38 @@ const App = () => (
                     </RequireUserInit>
                   }
                 />
-                <Route path="/profile/:user_id" element={<Profile />} />
+                <Route
+                  path="/testimonials/new"
+                  element={
+                    <RequireUserInit>
+                      <CreateTestimonial />
+                    </RequireUserInit>
+                  }
+                />
+                <Route
+                  path="/testimonials/:id"
+                  element={
+                    <RequireUserInit>
+                      <TestimonialDetail />
+                    </RequireUserInit>
+                  }
+                />
+                <Route
+                  path="/testimonials/edit/:id"
+                  element={
+                    <RequireUserInit>
+                      <EditTestimonial />
+                    </RequireUserInit>
+                  }
+                />
+                <Route 
+                    path="/profile/:user_id" 
+                    element={
+                    <RequireUserInit>
+                      <Profile />
+                    </RequireUserInit>
+                    } 
+                />
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/about" element={<NotFound />} />
                 <Route path="/developer" element={<NotFound />} />

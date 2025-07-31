@@ -104,8 +104,8 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 - `useDeleteRequest()` - Delete request
 
 ### Testimonials
-- `useUserTestimonials(userId, page, limit)` - Get testimonials for a user
-- `useCheckTestimonialExists(toUserId)` - Check if testimonial exists
+- `useAllTestimonials(page, limit)` - Get all testimonials with pagination
+- `useMyTestimonials(page, limit)` - Get current user's testimonials 
 - `useTestimonialById(id)` - Get testimonial by ID
 - `useCreateTestimonial()` - Create testimonial
 - `useUpdateTestimonial()` - Update testimonial

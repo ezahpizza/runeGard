@@ -80,21 +80,14 @@ export const ProjectInfo = ({ project }: ProjectDetailProps) => {
           )}
           
           <div className="flex gap-3">
+            {isOwner && (
             <Button 
               onClick={() => navigate('/requests/new', { state: { projectId: project.id } })}
               className="flex-1 sm:flex-none bg-nightBlue text-boneWhite"
             >
               <MessageSquare size={16} />
               Find Teammates
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/testimonials/new', { state: { recipientId: project.created_by, projectId: project.id } })}
-              className="flex-1 sm:flex-none"
-            >
-              Leave Testimonial
-            </Button>
+            </Button>)}
           </div>
         </CardContent>
       </Card>

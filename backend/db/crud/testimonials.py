@@ -6,7 +6,7 @@ from db.mongo import mongodb
 from core.utils import validate_object_id, utc_now
 from core.controller import to_model, execute_paginated_query
 from core.logging_config import get_logger
-from models.testimonial import TestimonialCreate, TestimonialUpdate, Testimonial, TestimonialWithUser
+from models.testimonial import TestimonialCreate, TestimonialUpdate, Testimonial, TestimonialWithUser, TestimonialWithProject
 
 logger = get_logger(__name__)
 
@@ -16,25 +16,30 @@ class TestimonialCRUD:
     async def create_testimonial(self, testimonial_data: TestimonialCreate, from_user: str) -> Testimonial:
         """Create a new testimonial"""
         try:
-            # Prevent self-testimonials
-            if from_user == testimonial_data.to_user:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Cannot create testimonial for yourself"
-                )
-            
-            # Check if to_user exists
-            to_user = await mongodb.users.find_one({"user_id": testimonial_data.to_user})
-            if not to_user:
+            # Validate that the project exists
+            project_object_id = validate_object_id(testimonial_data.project_id)
+            project = await mongodb.projects.find_one({"_id": project_object_id})
+            if not project:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Target user not found"
+                    detail="Project not found"
+                )
+            
+            # Check if user already left a testimonial for this project
+            existing_testimonial = await mongodb.testimonials.find_one({
+                "from_user": from_user,
+                "project_id": testimonial_data.project_id
+            })
+            if existing_testimonial:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="You have already left a testimonial for this project"
                 )
             
             # Create testimonial document
             testimonial_doc = {
                 "from_user": from_user,
-                "to_user": testimonial_data.to_user,
+                "project_id": testimonial_data.project_id,
                 "content": testimonial_data.content,
                 "created_at": utc_now()
             }
@@ -44,11 +49,6 @@ class TestimonialCRUD:
             created_testimonial = await mongodb.testimonials.find_one({"_id": result.inserted_id})
             return to_model(Testimonial, created_testimonial)
             
-        except DuplicateKeyError:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="You have already left a testimonial for this user"
-            )
         except HTTPException:
             raise
         except Exception as e:
@@ -73,25 +73,17 @@ class TestimonialCRUD:
                 detail="Failed to fetch testimonial"
             )
 
-    async def get_user_testimonials(self, user_id: str, page: int = 1, limit: int = 10) -> Dict[str, Any]:
-        """Get testimonials for a specific user with pagination"""
+    async def get_all_testimonials(self, page: int = 1, limit: int = 10) -> Dict[str, Any]:
+        """Get all testimonials with pagination"""
         try:
-            # Verify user exists
-            user = await mongodb.users.find_one({"user_id": user_id})
-            if not user:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="User not found"
-                )
-            
-            query = {"to_user": user_id}
+            query = {}
             result = await execute_paginated_query(
                 mongodb.testimonials, query, 
                 sort_options={"created_at": -1}, 
                 page=page, limit=limit
             )
             
-            enriched_testimonials = []
+            testimonials_with_info = []
             for testimonial in result["documents"]:
                 from_user = await mongodb.users.find_one({"user_id": testimonial["from_user"]})
                 from_user_name = from_user.get("name", "Unknown User") if from_user else "Unknown User"
@@ -100,13 +92,110 @@ class TestimonialCRUD:
                     id=testimonial["id"],
                     from_user=testimonial["from_user"],
                     from_user_name=from_user_name,
+                    project_id=testimonial["project_id"],
                     content=testimonial["content"],
                     created_at=testimonial["created_at"]
                 )
-                enriched_testimonials.append(testimonial_with_user)
+                testimonials_with_info.append(testimonial_with_user)
             
             return {
-                "testimonials": enriched_testimonials,
+                "testimonials": testimonials_with_info,
+                "total": result["total"],
+                "page": result["page"],
+                "pages": result["pages"],
+                "limit": result["limit"]
+            }
+            
+        except Exception as e:
+            logger.error(f"Error fetching testimonials: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to fetch testimonials"
+            )
+
+    async def get_testimonials_by_author(self, author_user_id: str, page: int = 1, limit: int = 10) -> Dict[str, Any]:
+        """Get testimonials created by a specific user"""
+        try:
+            query = {"from_user": author_user_id}
+            result = await execute_paginated_query(
+                mongodb.testimonials, query, 
+                sort_options={"created_at": -1}, 
+                page=page, limit=limit
+            )
+            
+            # Enrich testimonials with project information
+            testimonials_with_info = []
+            for testimonial in result["documents"]:
+                # Get project info
+                project = await mongodb.projects.find_one({"_id": validate_object_id(testimonial["project_id"])})
+                project_title = project.get("title", "Unknown Project") if project else "Unknown Project"
+                
+                # Get user info
+                from_user = await mongodb.users.find_one({"user_id": testimonial["from_user"]})
+                from_user_name = from_user.get("name", "Unknown User") if from_user else "Unknown User"
+                
+                testimonial_with_project = TestimonialWithProject(
+                    id=testimonial["id"],
+                    from_user=testimonial["from_user"],
+                    from_user_name=from_user_name,
+                    project_id=testimonial["project_id"],
+                    project_title=project_title,
+                    content=testimonial["content"],
+                    created_at=testimonial["created_at"]
+                )
+                testimonials_with_info.append(testimonial_with_project)
+            
+            return {
+                "testimonials": testimonials_with_info,
+                "total": result["total"],
+                "page": result["page"],
+                "pages": result["pages"],
+                "limit": result["limit"]
+            }
+            
+        except Exception as e:
+            logger.error(f"Error fetching author testimonials: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to fetch author testimonials"
+            )
+
+    async def get_testimonials_by_project(self, project_id: str, page: int = 1, limit: int = 10) -> Dict[str, Any]:
+        """Get testimonials for a specific project"""
+        try:
+            # Validate that the project exists
+            project_object_id = validate_object_id(project_id)
+            project = await mongodb.projects.find_one({"_id": project_object_id})
+            if not project:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Project not found"
+                )
+            
+            query = {"project_id": project_id}
+            result = await execute_paginated_query(
+                mongodb.testimonials, query, 
+                sort_options={"created_at": -1}, 
+                page=page, limit=limit
+            )
+            
+            testimonials_with_info = []
+            for testimonial in result["documents"]:
+                from_user = await mongodb.users.find_one({"user_id": testimonial["from_user"]})
+                from_user_name = from_user.get("name", "Unknown User") if from_user else "Unknown User"
+                
+                testimonial_with_user = TestimonialWithUser(
+                    id=testimonial["id"],
+                    from_user=testimonial["from_user"],
+                    from_user_name=from_user_name,
+                    project_id=testimonial["project_id"],
+                    content=testimonial["content"],
+                    created_at=testimonial["created_at"]
+                )
+                testimonials_with_info.append(testimonial_with_user)
+            
+            return {
+                "testimonials": testimonials_with_info,
                 "total": result["total"],
                 "page": result["page"],
                 "pages": result["pages"],
@@ -116,10 +205,10 @@ class TestimonialCRUD:
         except HTTPException:
             raise
         except Exception as e:
-            logger.error(f"Error fetching user testimonials: {e}")
+            logger.error(f"Error fetching project testimonials: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to fetch user testimonials"
+                detail="Failed to fetch project testimonials"
             )
 
     async def update_testimonial(self, testimonial_id: str, update_data: TestimonialUpdate, user_id: str) -> Testimonial:
@@ -203,19 +292,6 @@ class TestimonialCRUD:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to delete testimonial"
             )
-
-    async def check_testimonial_exists(self, from_user: str, to_user: str) -> bool:
-        """Check if testimonial exists between two users"""
-        try:
-            count = await mongodb.testimonials.count_documents({
-                "from_user": from_user,
-                "to_user": to_user
-            })
-            return count > 0
-            
-        except Exception as e:
-            logger.error(f"Error checking testimonial existence: {e}")
-            return False
 
 # Global instance
 testimonial_crud = TestimonialCRUD()

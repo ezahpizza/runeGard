@@ -1,11 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FolderOpen, MessageSquare, Users, TrendingUp } from 'lucide-react';
+import { FolderOpen, MessageSquare, Users, TrendingUp, Quote } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface StatsData {
   projectsCount: number;
   requestsCount: number;
+  testimonialsCount: number;
   collaborationsCount: number;
 }
 
@@ -30,6 +31,13 @@ export const MyStatsCard = ({ stats }: MyStatsCardProps) => {
       bgColor: 'bg-nightBlue',
     },
     {
+      title: 'Testimonials',
+      value: stats.testimonialsCount,
+      icon: Quote,
+      color: 'text-rumba',
+      bgColor: 'bg-rumba',
+    },
+    {
       title: 'Collaborations',
       value: stats.collaborationsCount,
       icon: Users,
@@ -42,7 +50,7 @@ export const MyStatsCard = ({ stats }: MyStatsCardProps) => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="grid grid-cols-1 md:grid-cols-3 gap-4"
+      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
     >
       {statItems.map((item, index) => (
         <motion.div

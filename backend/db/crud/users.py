@@ -146,13 +146,8 @@ class UserCRUD:
                 {"$pull": {"contributors": user_id}}
             )
             
-            # Delete user's testimonials (both given and received)
-            await mongodb.testimonials.delete_many({
-                "$or": [
-                    {"from_user": user_id},
-                    {"to_user": user_id}
-                ]
-            })
+            # Delete user's testimonials (given by this user)
+            await mongodb.testimonials.delete_many({"from_user": user_id})
             
             # Delete user's teammate requests
             await mongodb.teammate_requests.delete_many({
@@ -242,13 +237,13 @@ class UserCRUD:
                 "contributors": user_id,
                 "created_by": {"$ne": user_id}
             })
-            testimonials_count = await mongodb.testimonials.count_documents({"to_user": user_id})
+            testimonials_count = await mongodb.testimonials.count_documents({"from_user": user_id})
             requests_count = await mongodb.teammate_requests.count_documents({"user_id": user_id})
             
             return {
                 "projects_created": projects_count,
                 "projects_contributed": contributed_count,
-                "testimonials_received": testimonials_count,
+                "testimonials_given": testimonials_count,
                 "teammate_requests": requests_count
             }
             

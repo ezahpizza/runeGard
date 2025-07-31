@@ -46,8 +46,7 @@
 
 ### Testimonials
 - `POST /` — Create a new testimonial
-- `GET /users/{user_id}` — Get testimonials for a specific user
-- `GET /check-exists` — Check if current user has already left a testimonial for target user
+- `GET /` — Get all testimonials with pagination
 - `GET /{testimonial_id}` — Get a specific testimonial by ID
 - `PUT /{testimonial_id}` — Update a testimonial (only by author)
 - `DELETE /{testimonial_id}` — Delete a testimonial (only by author)
@@ -94,7 +93,6 @@
 ### Testimonial
 - `id`: str
 - `from_user`: str
-- `to_user`: str
 - `content`: str
 - `created_at`: datetime
 

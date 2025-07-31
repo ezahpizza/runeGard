@@ -1,13 +1,17 @@
 import type { 
   TestimonialPublic, 
-  CreateTestimonialInput, 
+  CreateTestimonialInput,
+  CreateTestimonialContentInput, 
   UpdateTestimonialInput, 
-  TestimonialWithUser
+  TestimonialWithUser,
+  TestimonialWithProject
 } from '../schemas/testimonial.schema';
 
 export type { 
   TestimonialPublic, 
-  CreateTestimonialInput, 
+  CreateTestimonialInput,
+  CreateTestimonialContentInput, 
   UpdateTestimonialInput, 
-  TestimonialWithUser
+  TestimonialWithUser,
+  TestimonialWithProject
 };

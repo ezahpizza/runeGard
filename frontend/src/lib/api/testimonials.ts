@@ -4,39 +4,42 @@ import { apiClient } from '@/lib/api/apiClient';
 import { 
   testimonialPublicSchema, 
   paginatedTestimonialsSchema, 
-  checkTestimonialExistsSchema 
+  paginatedTestimonialsPublicSchema,
+  paginatedTestimonialsWithProjectSchema
 } from '@/lib/schemas/testimonial.schema';
 import type { 
-  CreateTestimonialInput, 
+  CreateTestimonialInput,
+  CreateTestimonialContentInput, 
   UpdateTestimonialInput
 } from '@/lib/types/testimonial';
 
-// Fetch testimonials for a specific user 
-export const useUserTestimonials = (userId: string, page: number = 1, limit: number = 10) =>
+// Fetch all testimonials
+export const useAllTestimonials = (page: number = 1, limit: number = 10) =>
   useQuery({
-    queryKey: ['testimonials', 'user', userId, { page, limit }],
+    queryKey: ['testimonials', 'all', { page, limit }],
     queryFn: async () => {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString()
       });
-      const data = await apiClient.get(`${apiRoutes.testimonials}/users/${userId}?${params}`, { skipAuth: true });
+      const data = await apiClient.get(`${apiRoutes.testimonials}?${params}`, { skipAuth: true });
 
       return paginatedTestimonialsSchema.parse(data);
     },
-    enabled: !!userId,
   });
 
-// Check if current user has already left a testimonial for target user 
-export const useCheckTestimonialExists = (toUserId: string) =>
+// Fetch testimonials created by current user 
+export const useMyTestimonials = (page: number = 1, limit: number = 10) =>
   useQuery({
-    queryKey: ['testimonial', 'exists', toUserId],
+    queryKey: ['testimonials', 'my', { page, limit }],
     queryFn: async () => {
-      const params = new URLSearchParams({ to_user: toUserId });
-      const data = await apiClient.get(`${apiRoutes.testimonials}/check-exists?${params}`);
-      return checkTestimonialExistsSchema.parse(data);
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString()
+      });
+      const data = await apiClient.get(`${apiRoutes.testimonials}/my?${params}`);
+      return paginatedTestimonialsWithProjectSchema.parse(data);
     },
-    enabled: !!toUserId,
   });
 
 // Fetch testimonial by ID 
@@ -50,6 +53,21 @@ export const useTestimonialById = (id: string) =>
     enabled: !!id,
   });
 
+// Fetch testimonials for a project
+export const useProjectTestimonials = (projectId: string, page: number = 1, limit: number = 10) =>
+  useQuery({
+    queryKey: ['testimonials', 'project', projectId, { page, limit }],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString()
+      });
+      const data = await apiClient.get(`${apiRoutes.projects}/${projectId}/testimonials?${params}`, { skipAuth: true });
+      return paginatedTestimonialsSchema.parse(data);
+    },
+    enabled: !!projectId,
+  });
+
 // Create testimonial 
 export const useCreateTestimonial = () => {
   const queryClient = useQueryClient();
@@ -60,8 +78,22 @@ export const useCreateTestimonial = () => {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['testimonials'] });
-      queryClient.invalidateQueries({ queryKey: ['testimonials', 'user', data.to_user] });
-      queryClient.invalidateQueries({ queryKey: ['testimonial', 'exists', data.to_user] });
+      queryClient.invalidateQueries({ queryKey: ['testimonials', 'project', data.project_id] });
+    },
+  });
+};
+
+// Create testimonial for a specific project
+export const useCreateProjectTestimonial = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ projectId, input }: { projectId: string; input: CreateTestimonialContentInput }) => {
+      const data = await apiClient.post(`${apiRoutes.projects}/${projectId}/testimonials`, input);
+      return testimonialPublicSchema.parse(data);
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['testimonials'] });
+      queryClient.invalidateQueries({ queryKey: ['testimonials', 'project', data.project_id] });
     },
   });
 };
@@ -76,8 +108,8 @@ export const useUpdateTestimonial = () => {
     },
     onSuccess: (data, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['testimonials'] });
-      queryClient.invalidateQueries({ queryKey: ['testimonials', 'user', data.to_user] });
       queryClient.invalidateQueries({ queryKey: ['testimonial', id] });
+      queryClient.invalidateQueries({ queryKey: ['testimonials', 'project', data.project_id] });
     },
   });
 };
@@ -87,11 +119,14 @@ export const useDeleteTestimonial = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
+      const testimonialData = await apiClient.get(`${apiRoutes.testimonials}/${id}`, { skipAuth: true });
+      const testimonial = testimonialPublicSchema.parse(testimonialData);
       await apiClient.delete(`${apiRoutes.testimonials}/${id}`);
-      return id;
+      return { id, projectId: testimonial.project_id };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['testimonials'] });
+      queryClient.invalidateQueries({ queryKey: ['testimonials', 'project', data.projectId] });
     },
   });
 };

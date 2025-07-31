@@ -1,13 +1,13 @@
 import { useParams, Navigate } from 'react-router-dom';
 import { useProjectById } from '@/lib/api/projects';
 import { useUsers } from '@/lib/api/users';
-import { ProjectInfo, ContributorList } from '@/components/project';
+import { ProjectInfo, ContributorList, ProjectTestimonials } from '@/components/project';
 import { motion } from 'framer-motion';
 
 const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { data: project, isLoading, isError } = useProjectById(id || '');
-  const { data: users } = useUsers({ limit: 50 }); // Get all users for contributor lookup
+  const { data: users } = useUsers({ limit: 50 }); 
 
   if (!id) {
     return <Navigate to="/explore" replace />;
@@ -55,6 +55,15 @@ const ProjectDetail = () => {
           className="mt-8"
         >
           <ContributorList contributors={contributors} createdBy={project.created_by} />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="mt-8"
+        >
+          <ProjectTestimonials projectId={project.id} projectTitle={project.title} />
         </motion.div>
       </div>
     </motion.div>

@@ -65,9 +65,9 @@ class MongoDB:
             # Testimonials collection indexes
             await self.testimonials.create_indexes([
                 IndexModel([("from_user", ASCENDING)]),
-                IndexModel([("to_user", ASCENDING)]),
+                IndexModel([("project_id", ASCENDING)]),
+                IndexModel([("from_user", ASCENDING), ("project_id", ASCENDING)], unique=True),
                 IndexModel([("created_at", DESCENDING)]),
-                IndexModel([("from_user", ASCENDING), ("to_user", ASCENDING)], unique=True),
             ])
             
             logger.info("All indexes created successfully")

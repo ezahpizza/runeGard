@@ -33,46 +33,70 @@ async def create_testimonial(
         )
 
 
-@router.get("/users/{user_id}", response_model=dict)
-async def get_user_testimonials(
-    user_id: str,
+@router.get("/", response_model=dict)
+async def get_all_testimonials(
     page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1, le=100)
 ):
-    """Get testimonials for a specific user"""
+    """Get all testimonials"""
     try:
-        return await testimonial_crud.get_user_testimonials(
-            user_id=user_id,
+        return await testimonial_crud.get_all_testimonials(
             page=page,
             limit=limit
         )
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error fetching user testimonials: {e}")
+        logger.error(f"Error fetching testimonials: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to fetch user testimonials"
+            detail="Failed to fetch testimonials"
         )
 
 
-@router.get("/check-exists")
-async def check_testimonial_exists(
-    to_user: str = Query(...),
+@router.get("/my", response_model=dict)
+async def get_my_testimonials(
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=100),
     user_id: str = Depends(get_current_user_id)
 ):
-    """Check if current user has already left a testimonial for target user"""
+    """Get testimonials created by the current user"""
     try:
-        exists = await testimonial_crud.check_testimonial_exists(
-            from_user=user_id,
-            to_user=to_user
+        return await testimonial_crud.get_testimonials_by_author(
+            author_user_id=user_id,
+            page=page,
+            limit=limit
         )
-        return {"exists": exists}
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Error checking testimonial existence: {e}")
+        logger.error(f"Error fetching my testimonials: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to check testimonial existence"
+            detail="Failed to fetch my testimonials"
+        )
+
+
+@router.get("/project/{project_id}", response_model=dict)
+async def get_project_testimonials(
+    project_id: str,
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=100)
+):
+    """Get testimonials for a specific project"""
+    try:
+        return await testimonial_crud.get_testimonials_by_project(
+            project_id=project_id,
+            page=page,
+            limit=limit
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching project testimonials: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to fetch project testimonials"
         )
 
 

@@ -2,8 +2,9 @@ import { useUser } from '@clerk/clerk-react';
 import { Navigate } from 'react-router-dom';
 import { useProjects } from '@/lib/api/projects';
 import { useMyRequests } from '@/lib/api/requests';
+import { useMyTestimonials } from '@/lib/api/testimonials';
 import { useCurrentUser } from '@/lib/api/users';
-import { DashboardHeader, MyStatsCard, MyProjectsList, MyRequestsList } from '@/components/dashboard';
+import { DashboardHeader, MyStatsCard, MyProjectsList, MyRequestsList, MyTestimonialsList } from '@/components/dashboard';
 import { motion } from 'framer-motion';
 import Loading from '@/components/ui/Loading';
 
@@ -12,6 +13,7 @@ const Dashboard = () => {
   const { data: backendUser } = useCurrentUser();
   const { data: projects, isLoading: projectsLoading } = useProjects();
   const { data: requests, isLoading: requestsLoading } = useMyRequests();
+  const { data: testimonials, isLoading: testimonialsLoading } = useMyTestimonials();
 
   if (!isLoaded) {
     return (
@@ -31,7 +33,8 @@ const Dashboard = () => {
   const stats = {
     projectsCount: userProjects.length,
     requestsCount: requests?.requests?.length || 0,
-    collaborationsCount: 0, // Not available with ProjectSummary data
+    testimonialsCount: testimonials?.testimonials?.length || 0,
+    collaborationsCount: 0, 
   };
 
   return (
@@ -74,10 +77,22 @@ const Dashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
+          className="mb-8"
         >
           <MyRequestsList 
             requests={requests?.requests || []} 
             isLoading={requestsLoading} 
+          />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <MyTestimonialsList 
+            testimonials={testimonials?.testimonials || []} 
+            isLoading={testimonialsLoading} 
           />
         </motion.div>
       </div>
