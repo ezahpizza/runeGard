@@ -44,7 +44,11 @@ export const ProjectInfo = ({ project }: ProjectDetailProps) => {
             </div>
             
             <div className="flex items-center gap-2">
-              <UpvoteButton projectId={project.id} />
+              <UpvoteButton 
+                projectId={project.id}
+                initialUpvotes={project.upvotes}
+                isUpvoted={user?.id ? project.upvoted_by.includes(user.id) : false}
+              />
               
               {isOwner && (
                 <Button asChild size="sm" variant="outline">
@@ -79,11 +83,11 @@ export const ProjectInfo = ({ project }: ProjectDetailProps) => {
             </div>
           )}
           
-          <div className="flex gap-3">
+          <div>
             {isOwner && (
             <Button 
               onClick={() => navigate('/requests/new', { state: { projectId: project.id } })}
-              className="flex-1 sm:flex-none bg-nightBlue text-boneWhite"
+              className="bg-nightBlue text-boneWhite"
             >
               <MessageSquare size={16} />
               Find Teammates

@@ -32,6 +32,7 @@ export const projectSummarySchema = z.object({
   status: projectStatusEnum,
   created_at: z.string().datetime(),
   tags: z.array(z.string()).default([]),
+  upvoted_by: z.array(z.string()).default([]),
 });
 
 export const createProjectSchema = z.object({
@@ -84,6 +85,7 @@ export const userProjectsSchema = z.object({
     status: projectStatusEnum,
     created_at: z.string(), 
     tags: z.array(z.string()).default([]),
+    upvoted_by: z.array(z.string()).default([]),
   })),
   total: z.number().int(),
   page: z.number().int(),

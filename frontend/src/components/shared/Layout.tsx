@@ -16,7 +16,7 @@ export const Layout = ({ children }: LayoutProps) => {
   const isLandingPage = location.pathname === '/';
 
   return (
-    <div className="min-h-screen bg-background font-body">
+    <div className="min-h-screen bg-background font-body overflow-hidden">
       <div style={{ display: 'none' }}>
         <SignInButton mode="modal">
           <button ref={signInRef} />

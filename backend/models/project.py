@@ -103,6 +103,7 @@ class ProjectSummary(BaseModel):
     status: ProjectStatus
     created_at: datetime
     tags: List[str] = Field(default_factory=list)
+    upvoted_by: List[str] = Field(default_factory=list)
     
     class Config:
         from_attributes = True

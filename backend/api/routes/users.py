@@ -1,7 +1,7 @@
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from core.auth import get_current_user, get_current_user_id
-from core.middleware import auth_rate_limit, standard_rate_limit, search_rate_limit
+from core.middleware import auth_rate_limit, standard_rate_limit
 from db.crud.users import user_crud
 from db.crud.projects import project_crud
 from models.user import User, UserInit, UserUpdate, UserPublic

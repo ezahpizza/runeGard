@@ -74,7 +74,7 @@ export const MyRequestsList = ({ requests, isLoading }: MyRequestsListProps) => 
           ) : requests.length === 0 ? (
             <div className="text-center py-8 text-midBlack">
               <p className="text-lg mb-4">You haven't created any teammate requests yet.</p>
-              <Button asChild>
+              <Button asChild className='text-midBlack'>
                 <Link to="/requests/new">Create your first request</Link>
               </Button>
             </div>

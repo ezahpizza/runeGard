@@ -41,9 +41,8 @@ const DockNav = ({ isSignedIn, signInRef, signOutRef, user }: DockNavProps) => {
 
   const items = useMemo(() => ([
     { icon: icons.home, label: 'Home', onClick: goHome },
-    { icon: icons.about, label: 'Learn More', onClick: goabout },
     { icon: icons.explore, label: 'Explore Projects', onClick: goExplore },
-    { icon: icons.profile, label: 'Profile', onClick: goProfile },
+    ...(isSignedIn ? [{ icon: icons.profile, label: 'Profile', onClick: goProfile }] : []),
     {
       icon: isSignedIn ? icons.signOut : icons.signIn,
       label: isSignedIn ? 'Sign Out' : 'Sign In',
@@ -61,9 +60,9 @@ const DockNav = ({ isSignedIn, signInRef, signOutRef, user }: DockNavProps) => {
       <Dock 
         className="bg-lavenda"
         items={items}
-        panelHeight={90}
-        baseItemSize={60}
-        magnification={90}
+        panelHeight={80}
+        baseItemSize={50}
+        magnification={80}
       />
     </motion.div>
   );

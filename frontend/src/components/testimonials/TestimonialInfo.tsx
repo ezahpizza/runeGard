@@ -62,7 +62,7 @@ export const TestimonialInfo = ({ testimonial }: TestimonialInfoProps) => {
             ) : project ? (
               <div className="flex items-center justify-between p-3 bg-card rounded border">
                 <span>{project.title}</span>
-                <Button asChild size="sm" variant="outline">
+                <Button asChild size="sm" className='hover:bg-lavenda text-midBlack'>
                   <Link to={`/projects/${project.id}`}>
                     View Project
                   </Link>
@@ -83,7 +83,7 @@ export const TestimonialInfo = ({ testimonial }: TestimonialInfoProps) => {
             ) : fromUser ? (
               <div className="flex items-center justify-between p-3 bg-card rounded border">
                 <span>{fromUser.name}</span>
-                <Button asChild size="sm" variant="outline">
+                <Button asChild size="sm" className='bg-mint hover:bg-rumba text-midBlack'>
                   <Link to={`/profile/${fromUser.user_id}`}>
                     View Profile
                   </Link>

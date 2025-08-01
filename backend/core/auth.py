@@ -24,7 +24,6 @@ class AuthenticationError(HTTPException):
 
 async def verify_clerk_token(token: str) -> dict:
     try:
-        # Authenticate the request using Clerk
         request = httpx.Request(
             method="GET",
             url="https://api.clerk.com/v1/users/me",
@@ -38,7 +37,6 @@ async def verify_clerk_token(token: str) -> dict:
         if not getattr(request_state, "is_signed_in", False):
             raise AuthenticationError("Invalid or expired token")
 
-        # Extract user_id from JWT claims directly (single step, no fallbacks)
         try:
             payload = jwt.decode(token, options={"verify_signature": False})
             user_id = payload.get("user_id")

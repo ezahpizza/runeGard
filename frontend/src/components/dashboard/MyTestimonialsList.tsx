@@ -74,7 +74,7 @@ export const MyTestimonialsList = ({ testimonials, isLoading }: MyTestimonialsLi
           ) : testimonials.length === 0 ? (
             <div className="text-center py-8 text-midBlack">
               <p className="text-lg mb-4">You haven't written any testimonials yet.</p>
-              <Button asChild>
+              <Button asChild className='text-midBlack'>
                 <Link to="/testimonials/new">Write your first testimonial</Link>
               </Button>
             </div>

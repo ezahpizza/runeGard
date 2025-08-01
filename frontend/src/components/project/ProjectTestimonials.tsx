@@ -4,9 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Quote, Plus, Edit, MessageSquare } from 'lucide-react';
+import { Quote, Plus, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useProjectTestimonials, useCreateProjectTestimonial, useUpdateTestimonial } from '@/lib/api/testimonials';
+import { useProjectTestimonials, useCreateProjectTestimonial } from '@/lib/api/testimonials';
 import { TestimonialCard } from '@/components/testimonials';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
@@ -19,64 +19,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import type { TestimonialWithUser, UpdateTestimonialInput, CreateTestimonialContentInput } from '@/lib/types/testimonial';
+import type { CreateTestimonialContentInput } from '@/lib/types/testimonial';
 
-// Edit form component for testimonials
-interface EditTestimonialFormProps {
-  defaultContent: string;
-  onSubmit: (data: UpdateTestimonialInput) => void;
-  isLoading: boolean;
-  onCancel: () => void;
-}
-
-const EditTestimonialForm = ({ defaultContent, onSubmit, isLoading, onCancel }: EditTestimonialFormProps) => {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<UpdateTestimonialInput>({
-    resolver: zodResolver(createTestimonialContentSchema),
-    defaultValues: {
-      content: defaultContent,
-    },
-  });
-
-  return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <div className="space-y-2">
-        <Label htmlFor="edit-content">Your Testimonial *</Label>
-        <Textarea
-          id="edit-content"
-          {...register('content')}
-          placeholder="Share your experience working on this project..."
-          rows={6}
-          className="resize-none"
-        />
-        {errors.content && (
-          <p className="text-sm text-destructive">{errors.content.message}</p>
-        )}
-      </div>
-
-      <div className="flex gap-3 justify-end">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-          disabled={isLoading}
-        >
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          disabled={isLoading}
-          className="bg-nightBlue text-boneWhite hover:bg-nightBlue/90"
-        >
-          {isLoading ? 'Updating...' : 'Update Testimonial'}
-        </Button>
-      </div>
-    </form>
-  );
-};
 
 interface ProjectTestimonialsProps {
   projectId: string;
@@ -86,14 +30,11 @@ interface ProjectTestimonialsProps {
 export const ProjectTestimonials = ({ projectId, projectTitle }: ProjectTestimonialsProps) => {
   const { user } = useUser();
   const { toast } = useToast();
-  const [editingTestimonial, setEditingTestimonial] = useState<TestimonialWithUser | null>(null);
-  const [showEditDialog, setShowEditDialog] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   // Fetch project-specific testimonials
   const { data: testimonialsData, isLoading } = useProjectTestimonials(projectId, 1, 20);
   const createTestimonialMutation = useCreateProjectTestimonial();
-  const updateTestimonialMutation = useUpdateTestimonial();
 
   const testimonials = testimonialsData?.testimonials || [];
 
@@ -137,31 +78,6 @@ export const ProjectTestimonials = ({ projectId, projectTitle }: ProjectTestimon
 
   const handleAddTestimonial = () => {
     setShowCreateDialog(true);
-  };
-
-  const handleUpdateTestimonial = async (data: UpdateTestimonialInput) => {
-    if (!editingTestimonial) return;
-
-    try {
-      await updateTestimonialMutation.mutateAsync({
-        id: editingTestimonial.id,
-        input: data
-      });
-      
-      toast({
-        title: "Testimonial Updated",
-        description: "Your testimonial has been updated successfully.",
-      });
-      
-      setShowEditDialog(false);
-      setEditingTestimonial(null);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update testimonial. Please try again.",
-        variant: "destructive",
-      });
-    }
   };
 
   // Check if current user has already left a testimonial for this project
@@ -318,27 +234,6 @@ export const ProjectTestimonials = ({ projectId, projectTitle }: ProjectTestimon
               </Button>
             </div>
           </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Testimonial Dialog */}
-      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Edit Testimonial</DialogTitle>
-            <DialogDescription>
-              Update your testimonial to reflect your current experience.
-            </DialogDescription>
-          </DialogHeader>
-          
-          {editingTestimonial && (
-            <EditTestimonialForm
-              defaultContent={editingTestimonial.content}
-              onSubmit={handleUpdateTestimonial}
-              isLoading={updateTestimonialMutation.isPending}
-              onCancel={() => setShowEditDialog(false)}
-            />
-          )}
         </DialogContent>
       </Dialog>
     </>

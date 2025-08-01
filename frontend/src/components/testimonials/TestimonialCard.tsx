@@ -63,7 +63,7 @@ export const TestimonialCard = ({ testimonial, className = '', showProject = fal
           </p>
           
           <div className="flex justify-end">
-            <Button asChild size="sm" variant="outline" className="hover:bg-apricot">
+            <Button asChild size="sm" className="hover:bg-mint text-midBlack">
               <Link to={`/testimonials/${testimonial.id}`}>
                 <Eye size={14} />
                 View Full
